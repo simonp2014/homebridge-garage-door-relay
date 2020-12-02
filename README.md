@@ -67,8 +67,8 @@ More information at https://savjee.be/2020/06/make-garage-door-opener-smart-shel
 | `statusKey` | [JSONPath](https://www.npmjs.com/package/jsonpath) that identifies the field/key that contains the status of the door (e.g. `$currentState`) | `$ison` |
 | `statusValueOpen` | Regex that will match the closed state of the `statusValue` (e.g. `0`) | `true`  |
 | `statusValueClosed` | Regex that will match the closed state of the `statusValue` (e.g. `1`) | `false` |
-| `statusValueOpening` | Regex that will match the closed state of the `statusValue` (e.g. `2`) |  N/A |
-| `statusValueClosing` | Regex that will match the closed state of the `statusValue` (e.g. `3`) | N/A |
+| `statusValueOpening` | Regex that will match the closed state of the `statusValue` (e.g. `2`) |  `opening` |
+| `statusValueClosing` | Regex that will match the closed state of the `statusValue` (e.g. `3`) | `closing` |
 
 
 ### Additional options
