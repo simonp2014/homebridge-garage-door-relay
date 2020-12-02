@@ -1,15 +1,29 @@
-# homebridge-garage-remote-http
+<p align="center">
+  <a href="https://github.com/homebridge/homebridge"><img src="https://raw.githubusercontent.com/homebridge/branding/master/logos/homebridge-color-round-stylized.png" height="140"></a>
+</p>
 
-[![npm](https://img.shields.io/npm/v/homebridge-garage-remote-http.svg)](https://www.npmjs.com/package/homebridge-garage-remote-http) [![npm](https://img.shields.io/npm/dt/homebridge-garage-remote-http.svg)](https://www.npmjs.com/package/homebridge-garage-remote-http)
+<span align="center">
+
+# homebridge-garage-door-shelly1
+
+[![npm](https://img.shields.io/npm/v/homebridge-garage-door-shelly1.svg)](https://www.npmjs.com/package/homebridge-garage-door-shelly1) [![npm](https://img.shields.io/npm/dt/homebridge-garage-door-shelly1.svg)](https://www.npmjs.com/package/homebridge-garage-door-shelly1)
+
+This work is forked from https://github.com/andreaseu/homebridge-garage-remote-http. Kudus to Andreas.
 
 ## Description
 
-This [homebridge](https://github.com/nfarina/homebridge) plugin exposes a web-based garage opener to Apple's [HomeKit](http://www.apple.com/ios/home/). Using simple HTTP requests, the plugin allows you to open/close the garage.
+This [homebridge](https://github.com/nfarina/homebridge) plugin exposes a web-based garage opener to Apple's [HomeKit](http://www.apple.com/ios/home/). Using simple HTTP requests, the plugin allows you to open/close the garage. It works as a general purpose HTTP client for any relay, but it works particularly well with a Shelly 1 relay.
+
+## Wiring 
+
+![Shelly 1 wiring](https://savjee.be/uploads/2020-06-smart-garage-door-shelly-home-assistant/shelly-schematic-dc.png)
+
+More information at https://savjee.be/2020/06/make-garage-door-opener-smart-shelly-esphome-home-assistant/
 
 ## Installation
 
 1. Install [homebridge](https://github.com/nfarina/homebridge#installation-details)
-2. Install this plugin: `npm install -g homebridge-garage-remote-http`
+2. Install this plugin: `npm install -g homebridge-garage-door-shelly1`
 3. Update your `config.json`
 
 ## Configuration
@@ -19,8 +33,9 @@ This [homebridge](https://github.com/nfarina/homebridge) plugin exposes a web-ba
      {
        "accessory": "GarageDoorOpener",
        "name": "Garage",
-       "openURL": "http://myurl.com/open",
-       "closeURL": "http://myurl.com/close",
+       "openURL": "http://shelly_ip/relay/0?turn=on",
+       "closeURL": "http://shelly_ip/relay/0?turn=off",
+       "statusURL": "http://shelly_ip/relay/0",
        "openTime": "30",
        "closeTime": "30",
        "autoLock": "true",
@@ -51,11 +66,11 @@ This [homebridge](https://github.com/nfarina/homebridge) plugin exposes a web-ba
 | `polling` | Whether the state should be polled at intervals | `false` |
 | `pollInterval` | Time (in seconds) between device polls (if `polling` is enabled) | `120` |
 | `statusURL` | URL to retrieve state on poll (if `statusField*` options are not set, expects HTTP response body to be `0` or `1`) | N/A |
-| `statusFieldPath` | JSONPath that identifies the field that contains the status value (e.g. `$currentState`| `$ison` |
-| `statusFieldValueOpen` | Regex that will match the closed state of the `statusFieldValue` (e.g. `0`) | `true`  |
-| `statusFieldValueClosed` | Regex that will match the closed state of the `statusFieldValue` (e.g. `1`) | `false` |
-| `statusFieldValueOpening` | Regex that will match the closed state of the `statusFieldValue` (e.g. `2`) |  N/A |
-| `statusFieldValueClosing` | Regex that will match the closed state of the `statusFieldValue` (e.g. `3`) | N/A |
+| `statusKey` | [JSONPath](https://www.npmjs.com/package/jsonpath) that identifies the field/key that contains the status of the door (e.g. `$currentState`) | `$ison` |
+| `statusValueOpen` | Regex that will match the closed state of the `statusValue` (e.g. `0`) | `true`  |
+| `statusValueClosed` | Regex that will match the closed state of the `statusValue` (e.g. `1`) | `false` |
+| `statusValueOpening` | Regex that will match the closed state of the `statusValue` (e.g. `2`) |  N/A |
+| `statusValueClosing` | Regex that will match the closed state of the `statusValue` (e.g. `3`) | N/A |
 
 
 ### Additional options

@@ -44,11 +44,11 @@ function GarageDoorOpener(log, config) {
   this.pollInterval = config.pollInterval || 120;
   this.statusURL = config.statusURL;
 
-  this.statusFieldPath = config.statusFieldPath || "ison";
-  this.statusFieldValueOpen = config.statusFieldValueOpen || "true";
-  this.statusFieldValueClosed = config.statusFieldValueClosed || "false";
-  this.statusFieldValueOpening = config.statusFieldValueOpening;
-  this.statusFieldValueClosing = config.statusFieldValueClosing;
+  this.statusKey = config.statusKey || "ison";
+  this.statusValueOpen = config.statusValueOpen || "true";
+  this.statusValueClosed = config.statusValueClosed || "false";
+  this.statusValueOpening = config.statusValueOpening;
+  this.statusValueClosing = config.statusValueClosing;
 
   if (this.username != null && this.password != null) {
     this.auth = {
@@ -100,26 +100,24 @@ GarageDoorOpener.prototype = {
         } else {
           let statusValue = 0;
 
-          if (this.statusFieldPath) {
+          if (this.statusKey) {
             var originalStatusValue = jp.query(
               JSON.parse(responseBody),
               "$ison"
             );
 
-            if (
-              new RegExp(this.statusFieldValueOpen).test(originalStatusValue)
-            ) {
+            if (new RegExp(this.statusValueOpen).test(originalStatusValue)) {
               statusValue = 0;
             } else if (
-              new RegExp(this.statusFieldValueClosed).test(originalStatusValue)
+              new RegExp(this.statusValueClosed).test(originalStatusValue)
             ) {
               statusValue = 1;
             } else if (
-              new RegExp(this.statusFieldValueOpening).test(originalStatusValue)
+              new RegExp(this.statusValueOpening).test(originalStatusValue)
             ) {
               statusValue = 2;
             } else if (
-              new RegExp(this.statusFieldValueClosing).test(originalStatusValue)
+              new RegExp(this.statusValueClosing).test(originalStatusValue)
             ) {
               statusValue = 3;
             }

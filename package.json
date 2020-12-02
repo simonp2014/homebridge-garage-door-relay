@@ -1,7 +1,7 @@
 {
-  "name": "homebridge-garage-remote-http",
-  "version": "1.0.1",
-  "description": "Homebridge plugin for a simple web-based garage",
+  "name": "homebridge-garage-door-shelly1",
+  "version": "1.0.0",
+  "description": "Homebridge plugin for a simple garage door opener using Shelly 1 relay",
   "main": "index.js",
   "engines": {
     "homebridge": ">=0.4.50",
@@ -12,7 +12,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/andreaseu/homebridge-garage-remote-http"
+    "url": "git+https://github.com/jmaferreira/homebridge-garage-door-shelly1"
   },
   "dependencies": {
     "jsonpath": "^1.0.2",
@@ -24,13 +24,14 @@
     "garage",
     "garagedoor",
     "home",
-    "remote"
+    "remote",
+    "shelly",
+    "shelly1"
   ],
-  "author": "Andreas Hähnel",
+  "author": "Miguel Ferreira",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/andreaseu/homebridge-garage-remote-http/issues",
-    "email": "mail@andreas.eu"
+    "url": "https://github.com/jmaferreira/homebridge-garage-door-shelly1/issues"
   },
-  "homepage": "https://github.com/andreaseu/homebridge-garage-remote-http#readme"
+  "homepage": "https://github.com/jmaferreira/homebridge-garage-door-shelly1#readme"
 }
