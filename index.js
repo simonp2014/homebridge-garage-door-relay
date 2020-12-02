@@ -128,9 +128,10 @@ GarageDoorOpener.prototype = {
             }
 
             this.log.warn(
-              "Transformed status value from %s to %s",
-              responseBody,
-              statusValue
+              "Transformed status value from %s to %s (%s)",
+              originalStatusValue,
+              statusValue,
+              this.statusKey
             );
           } else {
             statusValue = responseBody;
