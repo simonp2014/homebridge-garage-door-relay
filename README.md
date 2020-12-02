@@ -50,7 +50,13 @@ This [homebridge](https://github.com/nfarina/homebridge) plugin exposes a web-ba
 | `switchOffDelay` | Time (in seconds) until your garage will automatically close without animation (if enabled) | `2` |
 | `polling` | Whether the state should be polled at intervals | `false` |
 | `pollInterval` | Time (in seconds) between device polls (if `polling` is enabled) | `120` |
-| `statusURL` | URL to retrieve state on poll (should return `0` or `1`) | N/A |
+| `statusURL` | URL to retrieve state on poll (if `statusField*` options are not set, expects HTTP response body to be `0` or `1`) | N/A |
+| `statusFieldPath` | JSONPath that identifies the field that contains the status value (e.g. `$currentState`| `$ison` |
+| `statusFieldValueOpen` | Regex that will match the closed state of the `statusFieldValue` (e.g. `0`) | `true`  |
+| `statusFieldValueClosed` | Regex that will match the closed state of the `statusFieldValue` (e.g. `1`) | `false` |
+| `statusFieldValueOpening` | Regex that will match the closed state of the `statusFieldValue` (e.g. `2`) |  N/A |
+| `statusFieldValueClosing` | Regex that will match the closed state of the `statusFieldValue` (e.g. `3`) | N/A |
+
 
 ### Additional options
 | Key | Description | Default |
@@ -69,3 +75,5 @@ This [homebridge](https://github.com/nfarina/homebridge) plugin exposes a web-ba
 | --- | --- |
 | `0` | Open |
 | `1` | Closed |
+| `2` | Opening |
+| `3` | Closing |

@@ -15,6 +15,7 @@
     "url": "git+https://github.com/andreaseu/homebridge-garage-remote-http"
   },
   "dependencies": {
+    "jsonpath": "^1.0.2",
     "request": ">=2.88.0"
   },
   "keywords": [
