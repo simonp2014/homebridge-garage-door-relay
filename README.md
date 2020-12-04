@@ -6,7 +6,7 @@
 
 [![npm](https://img.shields.io/npm/v/homebridge-garage-door-shelly1.svg)](https://www.npmjs.com/package/homebridge-garage-door-shelly1) [![npm](https://img.shields.io/npm/dt/homebridge-garage-door-shelly1.svg)](https://www.npmjs.com/package/homebridge-garage-door-shelly1)
 
-This work is forked from https://github.com/andreaseu/homebridge-garage-remote-http. Kudus to Andreas.
+This work is forked from https://github.com/andreaseu/homebridge-garage-remote-http. Kudos to Andreas.
 
 ## Description
 
