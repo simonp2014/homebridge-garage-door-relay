@@ -24,23 +24,33 @@ More information at https://savjee.be/2020/06/make-garage-door-opener-smart-shel
 2. Install this plugin: `npm install -g homebridge-garage-door-shelly1`
 3. Update your `config.json`
 
-## Configuration
+## Configuration example
+
+NOTE: Don't forget to update `shelly_ip` to the IP address of your Shelly relay.
 
 ```json
 "accessories": [
      {
-       "accessory": "GarageDoorOpener",
-       "name": "Garage",
-       "openURL": "http://shelly_ip/relay/0?turn=on",
-       "closeURL": "http://shelly_ip/relay/0?turn=off",
-       "statusURL": "http://shelly_ip/relay/0",
-       "openTime": "30",
-       "closeTime": "30",
-       "autoLock": "true",
-       "autoLockDelay": "30",
-       "switchOff": "true",
-       "switchOffDelay": "5"
-     }
+        "accessory": "GarageDoorOpener",
+        "name": "Back door",
+        "http_method": "GET",
+        "openURL": "http://shelly_ip/relay/0?turn=on",
+        "closeURL": "http://shelly_ip/relay/0?turn=on",
+        "autoLock": false,
+        "autoLockDelay": 60,
+        "openTime": 21,
+        "closeTime": 17,
+        "polling": true,
+        "pollInterval": 60,
+        "username": "garage",
+        "password": "Mh4hc7EDJF8mMkzv",
+        "manufacturer": "BFT",
+        "model": "SCE-MA (Board)",
+        "statusURL": "http://shelly_ip/relay/0",
+        "statusKey": "$.ison",
+        "statusValueOpen": "true",
+        "statusValueClosed": "false"
+    }
 ]
 ```
 
@@ -64,7 +74,7 @@ More information at https://savjee.be/2020/06/make-garage-door-opener-smart-shel
 | `polling` | Whether the state should be polled at intervals | `false` |
 | `pollInterval` | Time (in seconds) between device polls (if `polling` is enabled) | `120` |
 | `statusURL` | URL to retrieve state on poll (if `statusField*` options are not set, expects HTTP response body to be `0` or `1`) | N/A |
-| `statusKey` | [JSONPath](https://www.npmjs.com/package/jsonpath) that identifies the field/key that contains the status of the door (e.g. `$currentState`) | `$ison` |
+| `statusKey` | [JSONPath](https://www.npmjs.com/package/jsonpath) that identifies the field/key that contains the status of the door (e.g. `$currentState`) | `$.ison` |
 | `statusValueOpen` | Regex that will match the closed state of the `statusValue` (e.g. `0`) | `true`  |
 | `statusValueClosed` | Regex that will match the closed state of the `statusValue` (e.g. `1`) | `false` |
 | `statusValueOpening` | Regex that will match the closed state of the `statusValue` (e.g. `2`) |  `opening` |
