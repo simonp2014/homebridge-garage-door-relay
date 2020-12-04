@@ -79,7 +79,7 @@ NOTE: Don't forget to update `shelly_ip` to the IP address of your Shelly relay.
 | `polling` | Whether the state should be polled at intervals | `false` |
 | `pollInterval` | Time (in seconds) between device polls (if `polling` is enabled) | `120` |
 | `statusURL` | URL to retrieve state on poll (if `statusField*` options are not set, expects HTTP response body to be `0` or `1`) | N/A |
-| `statusKey` | [JSONPath](https://www.npmjs.com/package/jsonpath) that identifies the field/key that contains the status of the door (e.g. `$currentState`) | `$.ison` |
+| `statusKey` | [JSONPath](https://www.npmjs.com/package/jsonpath) that identifies the field/key that contains the status of the door (e.g. `$.currentState`) | `$.ison` |
 | `statusValueOpen` | Regex that will match the closed state of the `statusValue` (e.g. `0`) | `true`  |
 | `statusValueClosed` | Regex that will match the closed state of the `statusValue` (e.g. `1`) | `false` |
 | `statusValueOpening` | Regex that will match the closed state of the `statusValue` (e.g. `2`) |  `opening` |
