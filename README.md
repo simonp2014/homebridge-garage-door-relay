@@ -18,6 +18,11 @@ This [homebridge](https://github.com/nfarina/homebridge) plugin exposes a web-ba
 
 More information at https://savjee.be/2020/06/make-garage-door-opener-smart-shelly-esphome-home-assistant/
 
+### Videos on wiring
+
+- [Shelly1 Garage Door Control](https://www.youtube.com/watch?v=aV7gOWjia5w)
+- [Automate your Garage Door! The PERFECT First DIY Smart Home Project](https://www.youtube.com/watch?v=WEZUxXNiERQ)
+
 ## Installation
 
 1. Install [homebridge](https://github.com/nfarina/homebridge#installation-details)
