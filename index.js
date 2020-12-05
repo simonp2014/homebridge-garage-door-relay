@@ -44,11 +44,11 @@ function GarageDoorOpener(log, config) {
   this.pollInterval = config.pollInterval || 120;
   this.statusURL = config.statusURL;
 
-  this.statusKey = config.statusKey || "$.ison";
-  this.statusValueOpen = config.statusValueOpen || "true";
-  this.statusValueClosed = config.statusValueClosed || "false";
-  this.statusValueOpening = config.statusValueOpening || "opening";
-  this.statusValueClosing = config.statusValueClosing || "closing";
+  this.statusKey = config.statusKey || "$.inputs[0].input";
+  this.statusValueOpen = config.statusValueOpen || "0";
+  this.statusValueClosed = config.statusValueClosed || "1";
+  this.statusValueOpening = config.statusValueOpening || "2";
+  this.statusValueClosing = config.statusValueClosing || "3";
 
   if (this.username != null && this.password != null) {
     this.auth = {

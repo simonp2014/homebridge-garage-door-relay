@@ -12,24 +12,14 @@ This work is forked from https://github.com/andreaseu/homebridge-garage-remote-h
 
 This [homebridge](https://github.com/nfarina/homebridge) plugin exposes a web-based garage opener to Apple's [HomeKit](http://www.apple.com/ios/home/). Using simple HTTP requests, the plugin allows you to open/close the garage. It works as a general purpose HTTP client for any relay, but it works particularly well with a Shelly 1 relay.
 
-## Wiring 
-
-![Shelly 1 wiring](https://savjee.be/uploads/2020-06-smart-garage-door-shelly-home-assistant/shelly-schematic-dc.png)
-
-More information at https://savjee.be/2020/06/make-garage-door-opener-smart-shelly-esphome-home-assistant/
-
-### Videos on wiring
-
-- [Shelly1 Garage Door Control](https://www.youtube.com/watch?v=aV7gOWjia5w)
-- [Automate your Garage Door! The PERFECT First DIY Smart Home Project](https://www.youtube.com/watch?v=WEZUxXNiERQ)
-
 ## Installation
 
-1. Install [homebridge](https://github.com/nfarina/homebridge#installation-details)
-2. Install this plugin: `npm install -g homebridge-garage-door-shelly1`
-3. Update your `config.json`
+1. Install [Homebridge](https://github.com/homebridge/homebridge).
+2. Install the plugin by running `npm install -g homebridge-garage-door-shelly1` or by searching for `homebridge-garage-door-shelly1` on the [plugins tab](https://github.com/homebridge/homebridge#installing-plugins) if you are using [Homebridge UI](https://www.npmjs.com/package/homebridge-config-ui-x) or [Hoobs](https://hoobs.org/).
+3. Update your Homebridge `config.json` accordingly.
 
-## Configuration example
+
+## Configuration
 
 NOTE: Don't forget to update `shelly_ip` to the IP address of your Shelly relay.
 
@@ -51,13 +41,16 @@ NOTE: Don't forget to update `shelly_ip` to the IP address of your Shelly relay.
         "password": "Mh4hc7EDJF8mMkzv",
         "manufacturer": "BFT",
         "model": "SCE-MA (Board)",
-        "statusURL": "http://shelly_ip/relay/0",
-        "statusKey": "$.ison",
-        "statusValueOpen": "true",
-        "statusValueClosed": "false"
+        "statusURL": "http://shelly_ip/status",
+        "statusKey": "$.inputs[0].input",
+        "statusValueOpen": "0",
+        "statusValueClosed": "1"
     }
 ]
 ```
+
+
+## Options
 
 ### Core
 | Key | Description | Default |
@@ -79,12 +72,11 @@ NOTE: Don't forget to update `shelly_ip` to the IP address of your Shelly relay.
 | `polling` | Whether the state should be polled at intervals | `false` |
 | `pollInterval` | Time (in seconds) between device polls (if `polling` is enabled) | `120` |
 | `statusURL` | URL to retrieve state on poll (if `statusField*` options are not set, expects HTTP response body to be `0` or `1`) | N/A |
-| `statusKey` | [JSONPath](https://www.npmjs.com/package/jsonpath) that identifies the field/key that contains the status of the door (e.g. `$.currentState`) | `$.ison` |
-| `statusValueOpen` | Regex that will match the closed state of the `statusValue` (e.g. `0`) | `true`  |
-| `statusValueClosed` | Regex that will match the closed state of the `statusValue` (e.g. `1`) | `false` |
-| `statusValueOpening` | Regex that will match the closed state of the `statusValue` (e.g. `2`) |  `opening` |
-| `statusValueClosing` | Regex that will match the closed state of the `statusValue` (e.g. `3`) | `closing` |
-
+| `statusKey` | [JSONPath](https://www.npmjs.com/package/jsonpath) that identifies the property that contains the status of the door (e.g. `$.inputs[0].input` is the default for Shelly 1) | `$.inputs[0].input` |
+| `statusValueOpen` | Regex that will match the `open` state of the relay status (e.g. `open`) | `0`  |
+| `statusValueClosed` | Regex that will match the `closed` state of the relay status (e.g. `closed`) | `1` |
+| `statusValueOpening` | Regex that will match the `opening` state of the relay status (e.g. `opening`) |  `2` |
+| `statusValueClosing` | Regex that will match the `closing` state of the relay status (e.g. `closing`) | `3` |
 
 ### Additional options
 | Key | Description | Default |
@@ -98,10 +90,63 @@ NOTE: Don't forget to update `shelly_ip` to the IP address of your Shelly relay.
 | `manufacturer` | Appears under the _Manufacturer_ field for the accessory | author |
 | `firmware` | Appears under the _Firmware_ field for the accessory | version |
 
-## State key
+### State key
+
 | State | Description |
 | --- | --- |
 | `0` | Open |
 | `1` | Closed |
 | `2` | Opening |
 | `3` | Closing |
+
+
+## Wiring 
+
+![Shelly 1 wiring](https://savjee.be/uploads/2020-06-smart-garage-door-shelly-home-assistant/shelly-schematic-dc.png)
+
+More information at https://savjee.be/2020/06/make-garage-door-opener-smart-shelly-esphome-home-assistant/
+
+### Videos on wiring
+
+- [Shelly1 Garage Door Control](https://www.youtube.com/watch?v=aV7gOWjia5w)
+- [Automate your Garage Door! The PERFECT First DIY Smart Home Project](https://www.youtube.com/watch?v=WEZUxXNiERQ)
+
+## Door open/closed sensor 
+
+In order to know for sure if your gate is open or closed you need to install a Reed Switch sensor connected between `L` and `SW` (order is irrelevant). These cost between €2 and €5.
+
+![Reed Switch](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQlGm8m0RQnE2NE15JjLc4KEOUdR0QghniwDQkSQjto3mPq9qPUVGmlrB5vBVWsL1sJlLU9sWAOs4Y&usqp=CAc)
+
+
+
+
+For Shelly 1 and a normally open reed switch (NO) the following options need to be set:
+
+```json
+"accessories": [
+     {
+       ...
+		 "statusKey": "$.inputs[0].input",
+		 "statusValueOpen": "0",
+		 "statusValueClosed": "1"
+		 ...
+	  }
+	]
+```
+
+For a normally closed switch (NC), use:
+
+```json
+"accessories": [
+     {
+       ...
+		 "statusKey": "$.inputs[0].input",
+		 "statusValueOpen": "1",
+		 "statusValueClosed": "0"
+		 ...
+	  }
+	]
+```
+
+
+
