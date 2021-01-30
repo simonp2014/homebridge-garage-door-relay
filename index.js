@@ -86,9 +86,7 @@ GarageDoorOpener.prototype = {
     _getStatus: function(callback) {
         var url = this.statusURL;
 
-        if (this.config.debug) {
-            this.log.debug("Getting status: %s", url);
-        }
+        this.log.debug("Getting status: %s", url);
 
         this._httpRequest(
             url,
