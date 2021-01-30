@@ -15,6 +15,7 @@ module.exports = function(homebridge) {
 
 function GarageDoorOpener(log, config) {
     this.log = log;
+    this.config = config;
 
     this.name = config.name;
 
@@ -86,7 +87,9 @@ GarageDoorOpener.prototype = {
     _getStatus: function(callback) {
         var url = this.statusURL;
 
-        this.log.debug("Getting status: %s", url);
+        if (this.config.debug) {
+            this.log.debug("Getting status: %s", url);
+        }
 
         this._httpRequest(
             url,
@@ -94,7 +97,7 @@ GarageDoorOpener.prototype = {
             "GET",
             function(error, response, responseBody) {
                 if (error) {
-                    this.log.warn("Error getting status: %s", error.message);
+                    this.log.error("Error getting status: %s", error.message);
                     this.service
                         .getCharacteristic(Characteristic.CurrentDoorState)
                         .updateValue(new Error("Polling failed"));
@@ -130,7 +133,7 @@ GarageDoorOpener.prototype = {
                         }
 
                         if (this.config.debug) {
-                            this.log.warn(
+                            this.log.debug(
                                 "Transformed status value from %s to %s (%s)",
                                 originalStatusValue,
                                 statusValue,
@@ -147,9 +150,7 @@ GarageDoorOpener.prototype = {
                         .getCharacteristic(Characteristic.TargetDoorState)
                         .updateValue(statusValue);
 
-                    if (this.config.debug) {
-                        this.warn("Updated door state to: %s", statusValue);
-                    }
+                    this.warn("Updated door state to: %s", statusValue);
 
                     callback();
                 }
