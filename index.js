@@ -150,7 +150,9 @@ GarageDoorOpener.prototype = {
                         .getCharacteristic(Characteristic.TargetDoorState)
                         .updateValue(statusValue);
 
-                    this.log.warn("Updated door state to: %s", statusValue);
+                    if (this.config.debug) {
+                        this.log.debug("Updated door state to: %s", statusValue);
+                    }
 
                     callback();
                 }
