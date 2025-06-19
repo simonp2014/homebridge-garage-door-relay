@@ -328,7 +328,8 @@ GarageDoorOpener.prototype = {
             this.log("Webhook received, lastState: %s", this.lastState);
         }
         
-        this.setTargetDoorState(this.lastState, {});
+    
+        this.setTargetDoorState(this.lastState, function() {});
     },
 
     startWebhookServer: function() {
