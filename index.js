@@ -19,6 +19,7 @@ module.exports = function(homebridge) {
         instances.forEach(instance => {
             if (typeof instance.startWebhookServer === "function") {
                 instance.startWebhookServer();
+                instance._getStatus(function() {});
             }
         });
     });
@@ -242,7 +243,6 @@ GarageDoorOpener.prototype = {
                 } else {
                     if (value === 1) {
                         this.log("Started closing");
-                        this.simulateClose();
                     } else {
                         this.log("Started opening");
                         if (this.switchOff) {
@@ -251,7 +251,6 @@ GarageDoorOpener.prototype = {
                         if (this.autoLock) {
                             this.autoLockFunction();
                         }
-                        this.simulateOpen();
                     }
                     callback();
                 }
