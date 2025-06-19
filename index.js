@@ -2,6 +2,9 @@ var Service, Characteristic;
 const packageJson = require("./package.json");
 const request = require("request");
 const jp = require("jsonpath");
+const http = require("http");
+
+const instances = [];
 
 module.exports = function(homebridge) {
     Service = homebridge.hap.Service;
@@ -11,6 +14,22 @@ module.exports = function(homebridge) {
         "GarageDoorOpener",
         GarageDoorOpener
     );
+
+    homebridge.on("didFinishLaunching", () => {
+        instances.forEach(instance => {
+            if (typeof instance.startWebhookServer === "function") {
+                instance.startWebhookServer();
+            }
+        });
+    });
+
+    homebridge.on("shutdown", () => {
+        instances.forEach(instance => {
+            if (typeof instance.stopWebhookServer === "function") {
+                instance.stopWebhookServer();
+            }
+        });
+    });
 };
 
 function GarageDoorOpener(log, config) {
@@ -40,6 +59,8 @@ function GarageDoorOpener(log, config) {
     this.password = config.password || null;
     this.timeout = config.timeout || 3000;
 
+    this.webhookPort = config.webhookPort || null;
+
     this.http_method = config.http_method || "GET";
 
     this.polling = config.polling || false;
@@ -61,6 +82,8 @@ function GarageDoorOpener(log, config) {
     }
 
     this.service = new Service.GarageDoorOpener(this.name);
+
+    instances.push(this);
 }
 
 GarageDoorOpener.prototype = {
@@ -242,6 +265,52 @@ GarageDoorOpener.prototype = {
                 function(error, response, responseBody) {}.bind(this)
             );
         }, this.switchOffDelay * 1000);
+    },
+
+    startWebhookServer: function() {
+        if (!this.webhookPort) {
+            return;
+        }
+
+        try {
+            this.server = http.createServer((req, res) => {
+                try {
+                    if (req.url === "/garage/update") {
+                        this._getStatus(function() {});
+                        res.statusCode = 200;
+                        res.end("OK");
+                    } else {
+                        res.statusCode = 404;
+                        res.end();
+                    }
+                } catch (err) {
+                    this.log.error("Webhook handler error: %s", err.message);
+                    res.statusCode = 500;
+                    res.end();
+                }
+            });
+
+            this.server.on("error", err => {
+                this.log.error("Webhook server error: %s", err.message);
+            });
+
+            this.server.listen(this.webhookPort, () => {
+                this.log("Webhook server listening on port %s", this.webhookPort);
+            });
+        } catch (err) {
+            this.log.error("Failed to start webhook server: %s", err.message);
+        }
+    },
+
+    stopWebhookServer: function() {
+        if (this.server) {
+            try {
+                this.server.close();
+                this.log("Webhook server on port %s stopped", this.webhookPort);
+            } catch (err) {
+                this.log.error("Error stopping webhook server: %s", err.message);
+            }
+        }
     },
 
     getServices: function() {

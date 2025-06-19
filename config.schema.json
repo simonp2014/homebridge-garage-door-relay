@@ -53,6 +53,11 @@
                 "type": "string",
                 "description": "Password if HTTP authentication is enabled"
             },
+            "webhookPort": {
+                "title": "Webhook Port",
+                "type": "integer",
+                "description": "Port for local webhook server listening on /garage/update"
+            },
 
             "openTime": {
                 "title": "Time to open the door",
