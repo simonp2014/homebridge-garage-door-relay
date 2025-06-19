@@ -38,6 +38,7 @@ NOTE: Don't forget to update `shelly_ip` to the IP address of your Shelly relay.
         "pollInterval": 60,
         "username": "garage",
         "password": "Mh4hc7EDJF8mMkzv",
+        "webhookPort": 51828,
         "manufacturer": "BFT",
         "model": "SCE-MA (Board)",
         "statusURL": "http://shelly_ip/status",
@@ -87,6 +88,7 @@ NOTE: Don't forget to update `shelly_ip` to the IP address of your Shelly relay.
 | `http_method`  | HTTP method used to communicate with the device                                                    | `GET`   |
 | `username`     | Username if HTTP authentication is enabled                                                         | N/A     |
 | `password`     | Password if HTTP authentication is enabled                                                         | N/A     |
+| `webhookPort`  | Port for local webhook server triggered at `/garage/update`                     | N/A     |
 | `model`        | Appears under the _Model_ field for the accessory                                                  | plugin  |
 | `serial`       | Appears under the _Serial_ field for the accessory                                                 | version |
 | `manufacturer` | Appears under the _Manufacturer_ field for the accessory                                           | author  |

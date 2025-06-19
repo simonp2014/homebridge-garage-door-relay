@@ -12,6 +12,7 @@
     "pollInterval": 60,
     "username": "garage",
     "password": "********",
+    "webhookPort": 51828,
     "manufacturer": "BFT",
     "model": "SCE-MA (Board)",
     "statusURL": "http://192.168.1.24/status",
