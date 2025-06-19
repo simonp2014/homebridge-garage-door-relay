@@ -270,7 +270,6 @@ GarageDoorOpener.prototype = {
         this.service
             .getCharacteristic(Characteristic.CurrentDoorState)
             .updateValue(2);
-        this.lastState = 2;
         this.movementTimeout = setTimeout(() => {
             this.movementTimeout = null;
             this._getStatus(function() {});
@@ -288,7 +287,6 @@ GarageDoorOpener.prototype = {
         this.service
             .getCharacteristic(Characteristic.CurrentDoorState)
             .updateValue(3);
-        this.lastState = 3;
         this.movementTimeout = setTimeout(() => {
             this.movementTimeout = null;
             this._getStatus(function() {});
@@ -441,7 +439,6 @@ GarageDoorOpener.prototype = {
             this.service
                 .getCharacteristic(Characteristic.TargetDoorState)
                 .updateValue(1);
-            this.lastState = 1;
         }
 
         return [this.informationService, this.service];
