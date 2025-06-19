@@ -327,9 +327,11 @@ GarageDoorOpener.prototype = {
         if (this.config.debug) {
             this.log("Webhook received, lastState: %s", this.lastState);
         }
-        
-    
-        this.setTargetDoorState(this.lastState, function() {});
+        try{
+            this.setTargetDoorState(this.lastState, function() {});
+        } catch (err) {
+            this.log.error("Failed to start webhook server: %s", err.message);
+        }
     },
 
     startWebhookServer: function() {
