@@ -120,11 +120,11 @@ GarageDoorOpener.prototype = {
                     if (error) {
                         this.log("HTTP request error: %s", error.message);
                     } else {
-                        this.log(
-                            "HTTP response -> status: %s, body: %s",
-                            response && response.statusCode,
-                            body
-                        );
+                        // this.log(
+                        //     "HTTP response -> status: %s, body: %s",
+                        //     response && response.statusCode,
+                        //     body
+                        // );
                     }
                 }
                 callback(error, response, body);
@@ -152,11 +152,11 @@ GarageDoorOpener.prototype = {
                     callback(error);
                 } else {
                     if (this.config.debug) {
-                        this.log(
-                            "Status response -> status: %s, body: %s",
-                            response && response.statusCode,
-                            responseBody
-                        );
+                        // this.log(
+                        //     "Status response -> status: %s, body: %s",
+                        //     response && response.statusCode,
+                        //     responseBody
+                        // );
                     }
                     let statusValue = 0;
 
