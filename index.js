@@ -83,6 +83,9 @@ function GarageDoorOpener(log, config) {
 
     this.service = new Service.GarageDoorOpener(this.name);
 
+    this.lastState = 1;
+    this.movementTimeout = null;
+
     instances.push(this);
 }
 
@@ -173,6 +176,8 @@ GarageDoorOpener.prototype = {
                         .getCharacteristic(Characteristic.TargetDoorState)
                         .updateValue(statusValue);
 
+                    this.lastState = statusValue;
+
                     if (this.config.debug) {
                         this.log.debug("Updated door state to: %s", statusValue);
                     }
@@ -223,25 +228,31 @@ GarageDoorOpener.prototype = {
     },
 
     simulateOpen: function() {
+        if (this.movementTimeout) {
+            clearTimeout(this.movementTimeout);
+        }
         this.service
             .getCharacteristic(Characteristic.CurrentDoorState)
             .updateValue(2);
-        setTimeout(() => {
-            this.service
-                .getCharacteristic(Characteristic.CurrentDoorState)
-                .updateValue(0);
+        this.lastState = 2;
+        this.movementTimeout = setTimeout(() => {
+            this.movementTimeout = null;
+            this._getStatus(function() {});
             this.log("Finished opening");
         }, this.openTime * 1000);
     },
 
     simulateClose: function() {
+        if (this.movementTimeout) {
+            clearTimeout(this.movementTimeout);
+        }
         this.service
             .getCharacteristic(Characteristic.CurrentDoorState)
             .updateValue(3);
-        setTimeout(() => {
-            this.service
-                .getCharacteristic(Characteristic.CurrentDoorState)
-                .updateValue(1);
+        this.lastState = 3;
+        this.movementTimeout = setTimeout(() => {
+            this.movementTimeout = null;
+            this._getStatus(function() {});
             this.log("Finished closing");
         }, this.closeTime * 1000);
     },
@@ -267,6 +278,26 @@ GarageDoorOpener.prototype = {
         }, this.switchOffDelay * 1000);
     },
 
+    handleWebhook: function() {
+        if (this.movementTimeout) {
+            clearTimeout(this.movementTimeout);
+            this.movementTimeout = null;
+            this.log("Movement stopped via webhook");
+            this._getStatus(function() {});
+            return;
+        }
+
+        if (this.lastState === 1) {
+            this.log("Webhook triggered: opening");
+            this.simulateOpen();
+        } else if (this.lastState === 0) {
+            this.log("Webhook triggered: closing");
+            this.simulateClose();
+        } else {
+            this._getStatus(function() {});
+        }
+    },
+
     startWebhookServer: function() {
         if (!this.webhookPort) {
             return;
@@ -276,7 +307,7 @@ GarageDoorOpener.prototype = {
             this.server = http.createServer((req, res) => {
                 try {
                     if (req.url === "/garage/update") {
-                        this._getStatus(function() {});
+                        this.handleWebhook();
                         res.statusCode = 200;
                         res.end("OK");
                     } else {
@@ -343,6 +374,7 @@ GarageDoorOpener.prototype = {
             this.service
                 .getCharacteristic(Characteristic.TargetDoorState)
                 .updateValue(1);
+            this.lastState = 1;
         }
 
         return [this.informationService, this.service];
