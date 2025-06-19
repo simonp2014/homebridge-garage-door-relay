@@ -334,11 +334,11 @@ GarageDoorOpener.prototype = {
         }
 
         if (this.lastState === 1) {
-            this.log("Webhook triggered: opening");
-            this.simulateOpen();
-        } else if (this.lastState === 0) {
             this.log("Webhook triggered: closing");
             this.simulateClose();
+        } else if (this.lastState === 0) {
+            this.log("Webhook triggered: opening");
+            this.simulateOpen();
         } else {
             this._getStatus(function() {});
         }
