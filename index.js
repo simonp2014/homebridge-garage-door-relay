@@ -96,7 +96,17 @@ GarageDoorOpener.prototype = {
     },
 
     _httpRequest: function(url, body, method, callback) {
-        request({
+        if (this.config.debug) {
+            this.log.debug(
+                "HTTP request -> method: %s, url: %s, body: %s",
+                this.http_method,
+                url,
+                body
+            );
+        }
+
+        request(
+            {
                 url: url,
                 body: body,
                 method: this.http_method,
@@ -105,8 +115,19 @@ GarageDoorOpener.prototype = {
                 auth: this.auth,
             },
             function(error, response, body) {
+                if (this.config.debug) {
+                    if (error) {
+                        this.log.debug("HTTP request error: %s", error.message);
+                    } else {
+                        this.log.debug(
+                            "HTTP response -> status: %s, body: %s",
+                            response && response.statusCode,
+                            body
+                        );
+                    }
+                }
                 callback(error, response, body);
-            }
+            }.bind(this)
         );
     },
 
@@ -129,6 +150,13 @@ GarageDoorOpener.prototype = {
                         .updateValue(new Error("Polling failed"));
                     callback(error);
                 } else {
+                    if (this.config.debug) {
+                        this.log.debug(
+                            "Status response -> status: %s, body: %s",
+                            response && response.statusCode,
+                            responseBody
+                        );
+                    }
                     let statusValue = 0;
 
                     if (this.statusKey) {
@@ -199,6 +227,10 @@ GarageDoorOpener.prototype = {
             url = this.openURL;
         }
 
+        if (this.config.debug) {
+            this.log.debug("Requesting URL: %s", url);
+        }
+
         this._httpRequest(
             url,
             "",
@@ -228,6 +260,9 @@ GarageDoorOpener.prototype = {
     },
 
     simulateOpen: function() {
+        if (this.config.debug) {
+            this.log.debug("simulateOpen called");
+        }
         if (this.movementTimeout) {
             clearTimeout(this.movementTimeout);
         }
@@ -243,6 +278,9 @@ GarageDoorOpener.prototype = {
     },
 
     simulateClose: function() {
+        if (this.config.debug) {
+            this.log.debug("simulateClose called");
+        }
         if (this.movementTimeout) {
             clearTimeout(this.movementTimeout);
         }
@@ -258,6 +296,9 @@ GarageDoorOpener.prototype = {
     },
 
     autoLockFunction: function() {
+        if (this.config.debug) {
+            this.log.debug("autoLockFunction called");
+        }
         this.log("Waiting %s seconds for autolock", this.autoLockDelay);
         setTimeout(() => {
             this.service.setCharacteristic(Characteristic.TargetDoorState, 1);
@@ -266,6 +307,9 @@ GarageDoorOpener.prototype = {
     },
 
     switchOffFunction: function() {
+        if (this.config.debug) {
+            this.log.debug("switchOffFunction called");
+        }
         this.log("Waiting %s seconds for switch off", this.switchOffDelay);
         setTimeout(() => {
             this.log("SwitchOff...");
@@ -279,6 +323,9 @@ GarageDoorOpener.prototype = {
     },
 
     handleWebhook: function() {
+        if (this.config.debug) {
+            this.log.debug("Webhook received, lastState: %s", this.lastState);
+        }
         if (this.movementTimeout) {
             clearTimeout(this.movementTimeout);
             this.movementTimeout = null;
@@ -304,7 +351,20 @@ GarageDoorOpener.prototype = {
         }
 
         try {
+            if (this.config.debug) {
+                this.log.debug(
+                    "Starting webhook server on port %s",
+                    this.webhookPort
+                );
+            }
             this.server = http.createServer((req, res) => {
+                if (this.config.debug) {
+                    this.log.debug(
+                        "Webhook request: %s %s",
+                        req.method,
+                        req.url
+                    );
+                }
                 try {
                     if (req.url === "/garage/update") {
                         this.handleWebhook();
@@ -336,6 +396,12 @@ GarageDoorOpener.prototype = {
     stopWebhookServer: function() {
         if (this.server) {
             try {
+                if (this.config.debug) {
+                    this.log.debug(
+                        "Stopping webhook server on port %s",
+                        this.webhookPort
+                    );
+                }
                 this.server.close();
                 this.log("Webhook server on port %s stopped", this.webhookPort);
             } catch (err) {
@@ -345,6 +411,9 @@ GarageDoorOpener.prototype = {
     },
 
     getServices: function() {
+        if (this.config.debug) {
+            this.log.debug("Initializing services");
+        }
         this.informationService = new Service.AccessoryInformation();
 
         this.informationService
@@ -358,6 +427,12 @@ GarageDoorOpener.prototype = {
             .on("set", this.setTargetDoorState.bind(this));
 
         if (this.polling) {
+            if (this.config.debug) {
+                this.log.debug(
+                    "Polling enabled with interval %s seconds",
+                    this.pollInterval
+                );
+            }
             this._getStatus(function() {});
 
             setInterval(
@@ -367,6 +442,9 @@ GarageDoorOpener.prototype = {
                 this.pollInterval * 1000
             );
         } else {
+            if (this.config.debug) {
+                this.log.debug("Polling disabled");
+            }
             this.service
                 .getCharacteristic(Characteristic.CurrentDoorState)
                 .updateValue(1);
