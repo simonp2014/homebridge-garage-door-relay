@@ -242,17 +242,13 @@ GarageDoorOpener.prototype = {
                     callback(error);
                 } else {
                     if (value === 1) {
-                        this.log("Started closing");
-                        this.simulateClose();
                     } else {
-                        this.log("Started opening");
                         if (this.switchOff) {
                             this.switchOffFunction();
                         }
                         if (this.autoLock) {
                             this.autoLockFunction();
                         }
-                        this.simulateOpen();
                     }
                     callback();
                 }
@@ -326,7 +322,13 @@ GarageDoorOpener.prototype = {
             this.log("Webhook received, lastState: %s", this.lastState);
         }
         try{
-            this.setTargetDoorState(this.lastState, function() {});
+            if (this.lastState === 1) {
+                this.log("Started closing");
+                this.simulateClose();
+            } else {
+                this.log("Started opening");
+                this.simulateOpen();
+            }
         } catch (err) {
             this.log.error("Failed to start webhook server: %s", err.message);
         }
