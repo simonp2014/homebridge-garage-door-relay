@@ -322,12 +322,12 @@ GarageDoorOpener.prototype = {
             this.log("Webhook received, lastState: %s", this.lastState);
         }
         try{
-            if (this.lastState != 1) {
-                this.log("Started closing");
-                this.simulateClose();
-            } else {
+            if (this.lastState == 1) {
                 this.log("Started opening");
                 this.simulateOpen();
+            } else {
+                this.log("Started closing");
+                this.simulateClose();
             }
         } catch (err) {
             this.log.error("Failed to start webhook server: %s", err.message);
