@@ -103,6 +103,13 @@ NOTE: Don't forget to update `shelly_ip` to the IP address of your Shelly relay.
 | `1`   | Closed      |
 | `2`   | Opening     |
 | `3`   | Closing     |
+| `4`   | Stopped     |
+
+When the door is moving and a new command is received, the accessory first
+marks the door as **Stopped** before reversing its direction. For example,
+when opening a closed door and the webhook is triggered again, the sequence is:
+`Closed -> Opening -> Stopped -> Closing -> Closed`. The same applies in the
+opposite direction.
 
 ## Wiring
 

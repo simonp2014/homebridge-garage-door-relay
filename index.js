@@ -84,7 +84,6 @@ function GarageDoorOpener(log, config) {
 
     this.service = new Service.GarageDoorOpener(this.name);
 
-    this.lastState = 1;
     this.movementTimeout = null;
 
     instances.push(this);
@@ -205,8 +204,6 @@ GarageDoorOpener.prototype = {
                         .getCharacteristic(Characteristic.TargetDoorState)
                         .updateValue(statusValue);
 
-                    this.lastState = statusValue;
-
                     if (this.config.debug) {
                         this.log("Updated door state to: %s", statusValue);
                     }
@@ -254,6 +251,12 @@ GarageDoorOpener.prototype = {
                 }
             }.bind(this)
         );
+    },
+
+    getCurrentDoorState: function() {
+        return this.service.getCharacteristic(
+            Characteristic.CurrentDoorState
+        ).value;
     },
 
     simulateOpen: function() {
@@ -318,19 +321,60 @@ GarageDoorOpener.prototype = {
     },
 
     handleWebhook: function() {
+        const currentState = this.getCurrentDoorState();
+        const targetState = this.service.getCharacteristic(
+            Characteristic.TargetDoorState
+        ).value;
+
         if (this.config.debug) {
-            this.log("Webhook received, lastState: %s", this.lastState);
+            this.log(
+                "Webhook received, currentState: %s, targetState: %s",
+                currentState,
+                targetState
+            );
         }
-        try{
-            if (this.lastState == 1) {
-                this.log("Started opening");
-                this.simulateOpen();
-            } else {
-                this.log("Started closing");
-                this.simulateClose();
+
+        try {
+            switch (currentState) {
+                case 1: // Closed -> start opening
+                    this.log("Started opening");
+                    this.service
+                        .getCharacteristic(Characteristic.TargetDoorState)
+                        .updateValue(0);
+                    this.simulateOpen();
+                    break;
+                case 0: // Open -> start closing
+                    this.log("Started closing");
+                    this.service
+                        .getCharacteristic(Characteristic.TargetDoorState)
+                        .updateValue(1);
+                    this.simulateClose();
+                    break;
+                case 2: // Opening -> stop
+                case 3: // Closing -> stop
+                    this.log("Stopping movement");
+                    this.service
+                        .getCharacteristic(Characteristic.CurrentDoorState)
+                        .updateValue(4);
+                    break;
+                case 4: // Stopped -> reverse direction
+                    if (targetState === 0) {
+                        this.log("Reversing to close");
+                        this.service
+                            .getCharacteristic(Characteristic.TargetDoorState)
+                            .updateValue(1);
+                        this.simulateClose();
+                    } else {
+                        this.log("Reversing to open");
+                        this.service
+                            .getCharacteristic(Characteristic.TargetDoorState)
+                            .updateValue(0);
+                        this.simulateOpen();
+                    }
+                    break;
             }
         } catch (err) {
-            this.log.error("Failed to start webhook server: %s", err.message);
+            this.log.error("Failed to handle webhook: %s", err.message);
         }
     },
 
