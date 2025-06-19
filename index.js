@@ -322,7 +322,7 @@ GarageDoorOpener.prototype = {
             this.log("Webhook received, lastState: %s", this.lastState);
         }
         try{
-            if (this.lastState === 1) {
+            if (this.lastState != 1) {
                 this.log("Started closing");
                 this.simulateClose();
             } else {
