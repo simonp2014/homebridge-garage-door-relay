@@ -243,6 +243,7 @@ GarageDoorOpener.prototype = {
                 } else {
                     if (value === 1) {
                         this.log("Started closing");
+                        this.simulateClose();
                     } else {
                         this.log("Started opening");
                         if (this.switchOff) {
@@ -251,6 +252,7 @@ GarageDoorOpener.prototype = {
                         if (this.autoLock) {
                             this.autoLockFunction();
                         }
+                        this.simulateOpen();
                     }
                     callback();
                 }
@@ -325,23 +327,8 @@ GarageDoorOpener.prototype = {
         if (this.config.debug) {
             this.log("Webhook received, lastState: %s", this.lastState);
         }
-        if (this.movementTimeout) {
-            clearTimeout(this.movementTimeout);
-            this.movementTimeout = null;
-            this.log("Movement stopped via webhook");
-            this._getStatus(function() {});
-            return;
-        }
-
-        if (this.lastState === 1) {
-            this.log("Webhook triggered: closing");
-            this.simulateClose();
-        } else if (this.lastState === 0) {
-            this.log("Webhook triggered: opening");
-            this.simulateOpen();
-        } else {
-            this._getStatus(function() {});
-        }
+        
+        this.setTargetDoorState(this.lastState, {});
     },
 
     startWebhookServer: function() {
