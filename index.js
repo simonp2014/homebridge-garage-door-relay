@@ -97,7 +97,7 @@ GarageDoorOpener.prototype = {
 
     _httpRequest: function(url, body, method, callback) {
         if (this.config.debug) {
-            this.log.debug(
+            this.log(
                 "HTTP request -> method: %s, url: %s, body: %s",
                 this.http_method,
                 url,
@@ -117,9 +117,9 @@ GarageDoorOpener.prototype = {
             function(error, response, body) {
                 if (this.config.debug) {
                     if (error) {
-                        this.log.debug("HTTP request error: %s", error.message);
+                        this.log("HTTP request error: %s", error.message);
                     } else {
-                        this.log.debug(
+                        this.log(
                             "HTTP response -> status: %s, body: %s",
                             response && response.statusCode,
                             body
@@ -135,7 +135,7 @@ GarageDoorOpener.prototype = {
         var url = this.statusURL;
 
         if (this.config.debug) {
-            this.log.debug("Getting status: %s", url);
+            this.log("Getting status: %s", url);
         }
 
         this._httpRequest(
@@ -151,7 +151,7 @@ GarageDoorOpener.prototype = {
                     callback(error);
                 } else {
                     if (this.config.debug) {
-                        this.log.debug(
+                        this.log(
                             "Status response -> status: %s, body: %s",
                             response && response.statusCode,
                             responseBody
@@ -187,7 +187,7 @@ GarageDoorOpener.prototype = {
                         }
 
                         if (this.config.debug) {
-                            this.log.debug(
+                            this.log(
                                 "Transformed status value from %s to %s (%s)",
                                 originalStatusValue,
                                 statusValue,
@@ -207,7 +207,7 @@ GarageDoorOpener.prototype = {
                     this.lastState = statusValue;
 
                     if (this.config.debug) {
-                        this.log.debug("Updated door state to: %s", statusValue);
+                        this.log("Updated door state to: %s", statusValue);
                     }
 
                     callback();
@@ -219,7 +219,7 @@ GarageDoorOpener.prototype = {
     setTargetDoorState: function(value, callback) {
         var url;
 
-        this.log.debug("Setting targetDoorState to %s", value);
+        this.log("Setting targetDoorState to %s", value);
 
         if (value === 1) {
             url = this.closeURL;
@@ -228,7 +228,7 @@ GarageDoorOpener.prototype = {
         }
 
         if (this.config.debug) {
-            this.log.debug("Requesting URL: %s", url);
+            this.log("Requesting URL: %s", url);
         }
 
         this._httpRequest(
@@ -261,7 +261,7 @@ GarageDoorOpener.prototype = {
 
     simulateOpen: function() {
         if (this.config.debug) {
-            this.log.debug("simulateOpen called");
+            this.log("simulateOpen called");
         }
         if (this.movementTimeout) {
             clearTimeout(this.movementTimeout);
@@ -279,7 +279,7 @@ GarageDoorOpener.prototype = {
 
     simulateClose: function() {
         if (this.config.debug) {
-            this.log.debug("simulateClose called");
+            this.log("simulateClose called");
         }
         if (this.movementTimeout) {
             clearTimeout(this.movementTimeout);
@@ -297,7 +297,7 @@ GarageDoorOpener.prototype = {
 
     autoLockFunction: function() {
         if (this.config.debug) {
-            this.log.debug("autoLockFunction called");
+            this.log("autoLockFunction called");
         }
         this.log("Waiting %s seconds for autolock", this.autoLockDelay);
         setTimeout(() => {
@@ -308,7 +308,7 @@ GarageDoorOpener.prototype = {
 
     switchOffFunction: function() {
         if (this.config.debug) {
-            this.log.debug("switchOffFunction called");
+            this.log("switchOffFunction called");
         }
         this.log("Waiting %s seconds for switch off", this.switchOffDelay);
         setTimeout(() => {
@@ -324,7 +324,7 @@ GarageDoorOpener.prototype = {
 
     handleWebhook: function() {
         if (this.config.debug) {
-            this.log.debug("Webhook received, lastState: %s", this.lastState);
+            this.log("Webhook received, lastState: %s", this.lastState);
         }
         if (this.movementTimeout) {
             clearTimeout(this.movementTimeout);
@@ -352,14 +352,14 @@ GarageDoorOpener.prototype = {
 
         try {
             if (this.config.debug) {
-                this.log.debug(
+                this.log(
                     "Starting webhook server on port %s",
                     this.webhookPort
                 );
             }
             this.server = http.createServer((req, res) => {
                 if (this.config.debug) {
-                    this.log.debug(
+                    this.log(
                         "Webhook request: %s %s",
                         req.method,
                         req.url
@@ -397,7 +397,7 @@ GarageDoorOpener.prototype = {
         if (this.server) {
             try {
                 if (this.config.debug) {
-                    this.log.debug(
+                    this.log(
                         "Stopping webhook server on port %s",
                         this.webhookPort
                     );
@@ -412,7 +412,7 @@ GarageDoorOpener.prototype = {
 
     getServices: function() {
         if (this.config.debug) {
-            this.log.debug("Initializing services");
+            this.log("Initializing services");
         }
         this.informationService = new Service.AccessoryInformation();
 
@@ -428,7 +428,7 @@ GarageDoorOpener.prototype = {
 
         if (this.polling) {
             if (this.config.debug) {
-                this.log.debug(
+                this.log(
                     "Polling enabled with interval %s seconds",
                     this.pollInterval
                 );
@@ -443,7 +443,7 @@ GarageDoorOpener.prototype = {
             );
         } else {
             if (this.config.debug) {
-                this.log.debug("Polling disabled");
+                this.log("Polling disabled");
             }
             this.service
                 .getCharacteristic(Characteristic.CurrentDoorState)
