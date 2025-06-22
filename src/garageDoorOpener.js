@@ -128,8 +128,7 @@ class GarageDoorOpener {
                 this.log.warn('Error setting targetDoorState: %s', error.message);
                 callback(error);
             } else {
-                if (value === 1) {
-                } else {
+                if (value !== 1) {
                     if (this.switchOff) {
                         this.switchOffFunction();
                     }
