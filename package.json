@@ -33,9 +33,9 @@
   "author": "Miguel Ferreira",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/calvarium/homebridge-http-garage-door.git/issues"
+    "url": "https://github.com/calvarium/homebridge-http-garage-door/issues"
   },
-  "homepage": "https://github.com/calvarium/homebridge-http-garage-door.git#readme",
+  "homepage": "https://github.com/calvarium/homebridge-http-garage-door#readme",
   "devDependencies": {
     "eslint": "^9.29.0",
     "jest": "^30.0.2"
