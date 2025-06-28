@@ -75,6 +75,7 @@ class GarageDoorOpener {
         this.service = new Service.GarageDoorOpener(this.name);
         this.informationService = null;
         this.movementTimeout = null;
+        this.ignoreDeconzOpen = false;
 
         instances.push(this);
     }
@@ -166,10 +167,12 @@ class GarageDoorOpener {
         if (this.movementTimeout) {
             clearTimeout(this.movementTimeout);
         }
+        this.ignoreDeconzOpen = true;
         this.service
             .getCharacteristic(Characteristic.CurrentDoorState)
             .updateValue(2);
         this.movementTimeout = setTimeout(() => {
+            this.ignoreDeconzOpen = false;
             this.movementTimeout = null;
             this._getStatus(() => {});
             this.log('Finished opening');
@@ -183,6 +186,7 @@ class GarageDoorOpener {
         if (this.movementTimeout) {
             clearTimeout(this.movementTimeout);
         }
+        this.ignoreDeconzOpen = false;
         this.service
             .getCharacteristic(Characteristic.CurrentDoorState)
             .updateValue(3);
@@ -275,7 +279,22 @@ class GarageDoorOpener {
         if (this.deconzClient) {
             this.deconzClient.connect((state) => {
                 if (typeof state.open !== 'undefined') {
+                    if (state.open && this.ignoreDeconzOpen) {
+                        if (this.config.debug) {
+                            this.log('Ignoring deCONZ open event while opening');
+                        }
+                        return;
+                    }
+
                     const newState = state.open ? 0 : 1;
+
+                    if (!state.open && this.movementTimeout && this.getCurrentDoorState() === 3) {
+                        clearTimeout(this.movementTimeout);
+                        this.movementTimeout = null;
+                    }
+
+                    this.ignoreDeconzOpen = false;
+
                     this.service
                         .getCharacteristic(Characteristic.CurrentDoorState)
                         .updateValue(newState);
