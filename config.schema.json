@@ -147,6 +147,23 @@
                 "type": "boolean",
                 "default": false,
                 "description": "Turn on debug mode, i.e. additional information will show up on the homebridge log."
+            },
+            "deconzDeviceId": {
+                "title": "deCONZ sensor ID",
+                "type": "string",
+                "description": "ID of the deCONZ sensor used for state updates"
+            },
+            "deconzHost": {
+                "title": "deCONZ host",
+                "type": "string",
+                "default": "127.0.0.1",
+                "description": "Hostname of the deCONZ gateway"
+            },
+            "deconzPort": {
+                "title": "deCONZ port",
+                "type": "integer",
+                "default": 443,
+                "description": "Port of the deCONZ websocket"
             }
 
         }
