@@ -93,7 +93,10 @@ NOTE: Don't forget to update `shelly_ip` to the IP address of your Shelly relay.
 | `serial`       | Appears under the _Serial_ field for the accessory                                                 | version |
 | `manufacturer` | Appears under the _Manufacturer_ field for the accessory                                           | author  |
 | `firmware`     | Appears under the _Firmware_ field for the accessory                                               | version |
-| `debug`        | Display debug messages on Homebridge log                                                           | false   |
+| `debug`        | Display debug messages on Homebridge log                                      | false   |
+| `deconzDeviceId` | ID of the deCONZ sensor used for updates                                      | N/A     |
+| `deconzHost`   | Hostname of the deCONZ gateway                                                  | 127.0.0.1 |
+| `deconzPort`   | Port of the deCONZ websocket                                                    | 443     |
 
 ### State key
 
@@ -155,3 +158,7 @@ For a normally closed switch (NC), use:
 	  }
 	]
 ```
+
+## deCONZ integration
+
+When `deconzDeviceId` is set, the accessory listens to the deCONZ websocket for events of that sensor. When an event is received, the door state is updated immediately. Configure `deconzHost` and `deconzPort` if your gateway runs on a different host or port.

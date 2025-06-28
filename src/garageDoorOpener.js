@@ -1,6 +1,7 @@
 const packageJson = require('../package.json');
 const HttpClient = require('./httpClient');
 const WebhookServer = require('./webhookServer');
+const DeconzClient = require('./deconzClient');
 
 let Service;
 let Characteristic;
@@ -38,6 +39,10 @@ class GarageDoorOpener {
         this.statusValueOpening = config.statusValueOpening || '2';
         this.statusValueClosing = config.statusValueClosing || '3';
 
+        this.deconzDeviceId = config.deconzDeviceId || null;
+        this.deconzHost = config.deconzHost || 'localhost';
+        this.deconzPort = config.deconzPort || 443;
+
         if (this.username != null && this.password != null) {
             this.auth = { user: this.username, pass: this.password };
         }
@@ -56,6 +61,15 @@ class GarageDoorOpener {
                 this.config.debug,
                 () => this.handleWebhook()
             );
+        }
+
+        if (this.deconzDeviceId) {
+            this.deconzClient = new DeconzClient(this.log, {
+                host: this.deconzHost,
+                port: this.deconzPort,
+                deviceId: this.deconzDeviceId,
+                debug: this.config.debug,
+            });
         }
 
         this.service = new Service.GarageDoorOpener(this.name);
@@ -257,9 +271,34 @@ class GarageDoorOpener {
         }
     }
 
+    startDeconzListener() {
+        if (this.deconzClient) {
+            this.deconzClient.connect((state) => {
+                if (typeof state.open !== 'undefined') {
+                    const newState = state.open ? 0 : 1;
+                    this.service
+                        .getCharacteristic(Characteristic.CurrentDoorState)
+                        .updateValue(newState);
+                    this.service
+                        .getCharacteristic(Characteristic.TargetDoorState)
+                        .updateValue(newState);
+                    if (this.config.debug) {
+                        this.log('Updated door state from deCONZ to: %s', newState);
+                    }
+                }
+            });
+        }
+    }
+
     stopWebhookServer() {
         if (this.webhookServer) {
             this.webhookServer.stop();
+        }
+    }
+
+    stopDeconzListener() {
+        if (this.deconzClient) {
+            this.deconzClient.close();
         }
     }
 
