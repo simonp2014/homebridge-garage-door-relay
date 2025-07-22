@@ -244,6 +244,10 @@ class GarageDoorOpener {
                 case 2: // Opening -> stop
                 case 3: // Closing -> stop
                     this.log('Stopping movement');
+                    if (this.movementTimeout) {
+                        clearTimeout(this.movementTimeout);
+                        this.movementTimeout = null;
+                    }
                     this.service
                         .getCharacteristic(Characteristic.CurrentDoorState)
                         .updateValue(4);
@@ -297,9 +301,6 @@ class GarageDoorOpener {
 
                     this.service
                         .getCharacteristic(Characteristic.CurrentDoorState)
-                        .updateValue(newState);
-                    this.service
-                        .getCharacteristic(Characteristic.TargetDoorState)
                         .updateValue(newState);
                     if (this.config.debug) {
                         this.log('Updated door state from deCONZ to: %s', newState);
