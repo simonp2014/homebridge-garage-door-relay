@@ -297,11 +297,12 @@ class GarageDoorOpener {
                         this.movementTimeout = null;
                     }
 
+                    const finalCurrent = state.open ? Characteristic.CurrentDoorState.OPEN
+                                : Characteristic.CurrentDoorState.CLOSED;
+
                     this.ignoreDeconzOpen = false;
 
-                    this.service
-                        .getCharacteristic(Characteristic.CurrentDoorState)
-                        .updateValue(newState);
+                    this.syncFinalState(finalCurrent);
                     if (this.config.debug) {
                         this.log('Updated door state from deCONZ to: %s', newState);
                     }
@@ -309,6 +310,26 @@ class GarageDoorOpener {
             });
         }
     }
+
+    syncFinalState(finalCurrent) {
+    const { CurrentDoorState, TargetDoorState } = Characteristic;
+
+    // 1) Current sofort
+    this.service.updateCharacteristic(CurrentDoorState, finalCurrent);
+
+    // 2) Target nachziehen (nur 0/1)
+    const targetWanted = (finalCurrent === CurrentDoorState.OPEN)
+        ? TargetDoorState.OPEN
+        : TargetDoorState.CLOSED;
+
+    // nur senden, wenn wirklich unterschiedlich, sonst erzwingen:
+    const tChar = this.service.getCharacteristic(TargetDoorState);
+    if (tChar.value !== targetWanted) {
+        // kleiner Delay, damit iOS zwei getrennte Events sieht
+        setTimeout(() => tChar.updateValue(targetWanted), 20);
+    }
+    }
+
 
     stopWebhookServer() {
         if (this.webhookServer) {
