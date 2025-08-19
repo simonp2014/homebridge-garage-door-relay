@@ -8,7 +8,7 @@ module.exports = function(homebridge) {
     GarageDoorOpener.configure(Service, Characteristic);
 
     homebridge.registerAccessory(
-        'homebridge-garage-door-shelly1',
+        'homebridge-garage-door-relay',
         'GarageDoorOpener',
         GarageDoorOpener
     );
