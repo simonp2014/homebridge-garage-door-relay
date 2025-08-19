@@ -18,10 +18,8 @@ class GarageDoorOpener {
             closeURL,
             openTime = 10,
             closeTime = 10,
-            switchOff = false,
-            switchOffDelay = 2,
-            autoLock = false,
-            autoLockDelay = 20,
+            autoClose = false,
+            autoCloseDelay = 20,
             manufacturer = packageJson.author.name,
             serial = packageJson.version,
             model = packageJson.name,
@@ -43,8 +41,8 @@ class GarageDoorOpener {
         } = config;
 
         Object.assign(this, {
-            name, openURL, closeURL, openTime, closeTime, switchOff, switchOffDelay,
-            autoLock, autoLockDelay, manufacturer, serial, model, firmware,
+            name, openURL, closeURL, openTime, closeTime, 
+            autoClose, autoCloseDelay, manufacturer, serial, model, firmware,
             username, password, timeout, webhookPort, http_method, polling,
             pollInterval, statusURL, statusKey, statusValueOpen, statusValueClosed,
             statusValueOpening, statusValueClosing
@@ -131,7 +129,7 @@ class GarageDoorOpener {
             } else {
                 if (!isClosing) {
                     if (this.switchOff) this._delayedAction(this.switchOffDelay, this.switchOffFunction.bind(this));
-                    if (this.autoLock) this._delayedAction(this.autoLockDelay, this.autoLockFunction.bind(this));
+                    if (this.autoClose) this._delayedAction(this.autoCloseDelay, this.autoCloseFunction.bind(this));
                 }
                 callback();
             }
@@ -155,22 +153,13 @@ class GarageDoorOpener {
         }, duration * 1000);
     }
 
-    autoLockFunction() {
-        this._debugLog('autoLockFunction called');
-        this.log('Waiting %s seconds for autolock', this.autoLockDelay);
+    autoCloseFunction() {
+        this._debugLog('autoCloseFunction called');
+        this.log('Waiting %s seconds for autoClose', this.autoCloseDelay);
         setTimeout(() => {
             this.service.setCharacteristic(Characteristic.TargetDoorState, 1);
-            this.log('Autolocking...');
-        }, this.autoLockDelay * 1000);
-    }
-
-    switchOffFunction() {
-        this._debugLog('switchOffFunction called');
-        this.log('Waiting %s seconds for switch off', this.switchOffDelay);
-        setTimeout(() => {
-            this.log('SwitchOff...');
-            this._httpRequest(this.closeURL, '', this.http_method, () => { });
-        }, this.switchOffDelay * 1000);
+            this.log('autoCloseing...');
+        }, this.autoCloseDelay * 1000);
     }
 
     _delayedAction(delay, action) {

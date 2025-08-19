@@ -38,8 +38,8 @@ NOTE: Don't forget to update `shelly_ip` to the IP address of your Shelly relay.
         "http_method": "GET",
         "openURL": "http://shelly_ip/relay/0?turn=on",
         "closeURL": "http://shelly_ip/relay/0?turn=on",
-        "autoLock": false,
-        "autoLockDelay": 60,
+        "autoClose": false,
+        "autoCloseDelay": 60,
         "openTime": 21,
         "closeTime": 17,
         "polling": true,
@@ -75,10 +75,8 @@ NOTE: Don't forget to update `shelly_ip` to the IP address of your Shelly relay.
 | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
 | `openTime`           | Time (in seconds) to simulate your garage opening                                                                                                                           | `10`                |
 | `closeTime`          | Time (in seconds) to simulate your garage closing                                                                                                                           | `10`                |
-| `autoLock`           | Whether your garage should auto-close after being opened                                                                                                                    | `false`             |
-| `autoLockDelay`      | Time (in seconds) until your garage will automatically close (if enabled)                                                                                                   | `20`                |
-| `switchOff`          | Closes the garage immediately without animation. For IR remote control use.                                                                                                 | `false`             |
-| `switchOffDelay`     | Time (in seconds) until your garage will automatically close without animation (if enabled)                                                                                 | `2`                 |
+| `autoClose`           | Whether your garage should auto-close after being opened                                                                                                                    | `false`             |
+| `autoCloseDelay`      | Time (in seconds) until your garage will automatically close (if enabled)                                                                                                   | `20`                |
 | `polling`            | Whether the state should be polled at intervals                                                                                                                             | `false`             |
 | `pollInterval`       | Time (in seconds) between device polls (if `polling` is enabled)                                                                                                            | `120`               |
 | `statusURL`          | URL to retrieve state on poll (if `statusField*` options are not set, expects HTTP response body to be `0` or `1`)                                                          | N/A                 |
