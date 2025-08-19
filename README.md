@@ -16,7 +16,8 @@ l with a Shelly 1 relay.
 
 This version was created with the following aims:
 - Use event driven sensor updates instead of polling for improved feedback of door state during operation
-- Support garage doors with sensors at the closed position, opened position, both or neither. 
+- Support garage doors with sensors at the closed position, opened position, both or neither
+- For simplicity don't attempt to detect the stopped state, obstruction or when the door reverses during operation
 
 ## Installation
 
