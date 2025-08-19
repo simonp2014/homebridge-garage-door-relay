@@ -19,8 +19,5 @@
     "statusKey": "$.inputs[0].input",
     "statusValueOpen": "0",
     "statusValueClosed": "1",
-    "debug": false,
-    "deconzDeviceId": "1",
-    "deconzHost": "127.0.0.1",
-    "deconzPort": 443
+    "debug": false
 }

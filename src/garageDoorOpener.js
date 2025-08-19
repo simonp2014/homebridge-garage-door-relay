@@ -1,7 +1,6 @@
 const packageJson = require('../package.json');
 const HttpClient = require('./httpClient');
 const WebhookServer = require('./webhookServer');
-const DeconzClient = require('./deconzClient');
 
 let Service;
 let Characteristic;
@@ -39,10 +38,6 @@ class GarageDoorOpener {
         this.statusValueOpening = config.statusValueOpening || '2';
         this.statusValueClosing = config.statusValueClosing || '3';
 
-        this.deconzDeviceId = config.deconzDeviceId || null;
-        this.deconzHost = config.deconzHost || 'localhost';
-        this.deconzPort = config.deconzPort || 443;
-
         if (this.username != null && this.password != null) {
             this.auth = { user: this.username, pass: this.password };
         }
@@ -63,20 +58,10 @@ class GarageDoorOpener {
             );
         }
 
-        if (this.deconzDeviceId) {
-            this.deconzClient = new DeconzClient(this.log, {
-                host: this.deconzHost,
-                port: this.deconzPort,
-                deviceId: this.deconzDeviceId,
-                debug: this.config.debug,
-            });
-        }
-
         this.service = new Service.GarageDoorOpener(this.name);
         this.informationService = null;
         this.movementTimeout = null;
-        this.ignoreDeconzOpen = false;
-
+        
         // Used to provent polling during simulated open and close which will always be used
         // when the door is operated.
         this.isInSimulatedMovement = false;
@@ -188,12 +173,10 @@ class GarageDoorOpener {
         if (this.movementTimeout) {
             clearTimeout(this.movementTimeout);
         }
-        this.ignoreDeconzOpen = true;
         this.service
             .getCharacteristic(Characteristic.CurrentDoorState)
             .updateValue(2);
         this.movementTimeout = setTimeout(() => {
-            this.ignoreDeconzOpen = false;
             this.movementTimeout = null;
             this.isInSimulatedMovement = false;
             this._getStatus(() => { });
@@ -209,7 +192,6 @@ class GarageDoorOpener {
         if (this.movementTimeout) {
             clearTimeout(this.movementTimeout);
         }
-        this.ignoreDeconzOpen = false;
         this.service
             .getCharacteristic(Characteristic.CurrentDoorState)
             .updateValue(3);
@@ -303,67 +285,9 @@ class GarageDoorOpener {
         }
     }
 
-    startDeconzListener() {
-        if (this.deconzClient) {
-            this.deconzClient.connect((state) => {
-                if (typeof state.open !== 'undefined') {
-                    if (state.open && this.ignoreDeconzOpen) {
-                        if (this.config.debug) {
-                            this.log('Ignoring deCONZ open event while opening');
-                        }
-                        return;
-                    }
-
-                    const newState = state.open ? 0 : 1;
-
-                    if (!state.open && this.movementTimeout && this.getCurrentDoorState() === 3) {
-                        clearTimeout(this.movementTimeout);
-                        this.movementTimeout = null;
-                    }
-
-                    const finalCurrent = state.open ? Characteristic.CurrentDoorState.OPEN
-                        : Characteristic.CurrentDoorState.CLOSED;
-
-                    this.ignoreDeconzOpen = false;
-
-                    this.syncFinalState(finalCurrent);
-                    if (this.config.debug) {
-                        this.log('Updated door state from deCONZ to: %s', newState);
-                    }
-                }
-            });
-        }
-    }
-
-    syncFinalState(finalCurrent) {
-        const { CurrentDoorState, TargetDoorState } = Characteristic;
-
-        // 1) Current sofort
-        this.service.updateCharacteristic(CurrentDoorState, finalCurrent);
-
-        // 2) Target nachziehen (nur 0/1)
-        const targetWanted = (finalCurrent === CurrentDoorState.OPEN)
-            ? TargetDoorState.OPEN
-            : TargetDoorState.CLOSED;
-
-        // nur senden, wenn wirklich unterschiedlich, sonst erzwingen:
-        const tChar = this.service.getCharacteristic(TargetDoorState);
-        if (tChar.value !== targetWanted) {
-            // kleiner Delay, damit iOS zwei getrennte Events sieht
-            setTimeout(() => tChar.updateValue(targetWanted), 20);
-        }
-    }
-
-
     stopWebhookServer() {
         if (this.webhookServer) {
             this.webhookServer.stop();
-        }
-    }
-
-    stopDeconzListener() {
-        if (this.deconzClient) {
-            this.deconzClient.close();
         }
     }
 

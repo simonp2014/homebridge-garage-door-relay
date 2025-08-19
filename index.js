@@ -19,9 +19,6 @@ module.exports = function(homebridge) {
                 instance.startWebhookServer();
                 instance._getStatus(function() {});
             }
-            if (typeof instance.startDeconzListener === 'function') {
-                instance.startDeconzListener();
-            }
         });
     });
 
@@ -29,9 +26,6 @@ module.exports = function(homebridge) {
         GarageDoorOpener.instances.forEach(instance => {
             if (typeof instance.stopWebhookServer === 'function') {
                 instance.stopWebhookServer();
-            }
-            if (typeof instance.stopDeconzListener === 'function') {
-                instance.stopDeconzListener();
             }
         });
     });

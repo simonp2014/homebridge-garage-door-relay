@@ -15,6 +15,7 @@ Using simple HTTP requests, the plugin allows you to open/close the garage. It w
 l with a Shelly 1 relay.
 
 This version was created with the following aims:
+
 - Use event driven sensor updates instead of polling for improved feedback of door state during operation
 - Support garage doors with sensors at the closed position, opened position, both or neither
 - For simplicity don't attempt to detect the stopped state, obstruction or when the door reverses during operation
@@ -101,9 +102,6 @@ NOTE: Don't forget to update `shelly_ip` to the IP address of your Shelly relay.
 | `manufacturer` | Appears under the _Manufacturer_ field for the accessory                                           | author  |
 | `firmware`     | Appears under the _Firmware_ field for the accessory                                               | version |
 | `debug`        | Display debug messages on Homebridge log                                      | false   |
-| `deconzDeviceId` | ID of the deCONZ sensor used for updates                                      | N/A     |
-| `deconzHost`   | Hostname of the deCONZ gateway                                                  | 127.0.0.1 |
-| `deconzPort`   | Port of the deCONZ websocket                                                    | 443     |
 
 ### State key
 
@@ -166,6 +164,3 @@ For a normally closed switch (NC), use:
 	]
 ```
 
-## deCONZ integration
-
-When `deconzDeviceId` is set, the accessory listens to the deCONZ websocket for events of that sensor. When an event is received, the door state is updated immediately. Configure `deconzHost` and `deconzPort` if your gateway runs on a different host or port.
