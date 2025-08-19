@@ -82,7 +82,7 @@ class GarageDoorOpener {
 
     _getStatus(callback) {
         if (this.isInSimulatedMovement) {
-            if (this.debug) this.log('Skipping status update during simulated movement');
+            this._debugLog('Skipping status update during simulated movement');
             return;
         }
         this.httpClient.getStatus(
@@ -96,7 +96,7 @@ class GarageDoorOpener {
             },
             (error, statusValue) => {
                 if (this.isInSimulatedMovement) {
-                    if (this.debug) this.log('Skipping status response during simulated movement');
+                    this._debugLog('Skipping status response during simulated movement');
                     return;
                 }
                 if (error) {
@@ -109,7 +109,7 @@ class GarageDoorOpener {
                         .updateValue(statusValue);
                     this.service.getCharacteristic(Characteristic.TargetDoorState)
                         .updateValue(statusValue);
-                    if (this.debug) this.log('Updated door state to: %s', statusValue);
+                    this._debugLog('Updated door state to: %s', statusValue);
                     callback();
                 }
             }
@@ -120,7 +120,7 @@ class GarageDoorOpener {
         const isClosing = value === 1;
         const url = isClosing ? this.closeURL : this.openURL;
         this.log('Setting targetDoorState to %s', value);
-        if (this.debug) this.log('Requesting URL: %s', url);
+        this._debugLog('Requesting URL: %s', url);
 
         this._simulateMovement(isClosing ? 3 : 2, isClosing ? this.closeTime : this.openTime, isClosing ? 'closing' : 'opening');
 
@@ -143,7 +143,7 @@ class GarageDoorOpener {
     }
 
     _simulateMovement(state, duration, action) {
-        if (this.debug) this.log(`simulate${action.charAt(0).toUpperCase() + action.slice(1)} called`);
+        this._debugLog(`simulate${action.charAt(0).toUpperCase() + action.slice(1)} called`);
         this.isInSimulatedMovement = true;
         if (this.movementTimeout) clearTimeout(this.movementTimeout);
         this.service.getCharacteristic(Characteristic.CurrentDoorState).updateValue(state);
@@ -156,7 +156,7 @@ class GarageDoorOpener {
     }
 
     autoLockFunction() {
-        if (this.debug) this.log('autoLockFunction called');
+        this._debugLog('autoLockFunction called');
         this.log('Waiting %s seconds for autolock', this.autoLockDelay);
         setTimeout(() => {
             this.service.setCharacteristic(Characteristic.TargetDoorState, 1);
@@ -165,7 +165,7 @@ class GarageDoorOpener {
     }
 
     switchOffFunction() {
-        if (this.debug) this.log('switchOffFunction called');
+        this._debugLog('switchOffFunction called');
         this.log('Waiting %s seconds for switch off', this.switchOffDelay);
         setTimeout(() => {
             this.log('SwitchOff...');
@@ -180,7 +180,7 @@ class GarageDoorOpener {
     handleWebhook() {
         const currentState = this.getCurrentDoorState();
         const targetState = this.service.getCharacteristic(Characteristic.TargetDoorState).value;
-        if (this.debug) this.log('Webhook received, currentState: %s, targetState: %s', currentState, targetState);
+        this._debugLog('Webhook received, currentState: %s, targetState: %s', currentState, targetState);
         try {
             switch (currentState) {
                 case 1: // Closed -> start opening
@@ -225,8 +225,12 @@ class GarageDoorOpener {
         if (this.webhookServer) this.webhookServer.stop();
     }
 
+    _debugLog(...args) {
+        if (this.debug) this.log(...args);
+    }
+
     getServices() {
-        if (this.debug) this.log('Initializing services');
+        this._debugLog('Initializing services');
         this.informationService = new Service.AccessoryInformation()
             .setCharacteristic(Characteristic.Manufacturer, this.manufacturer)
             .setCharacteristic(Characteristic.Model, this.model)
@@ -237,11 +241,11 @@ class GarageDoorOpener {
             .on('set', this.setTargetDoorState.bind(this));
 
         if (this.polling) {
-            if (this.debug) this.log('Polling enabled with interval %s seconds', this.pollInterval);
+            this._debugLog('Polling enabled with interval %s seconds', this.pollInterval);
             this._getStatus(() => { });
             setInterval(() => this._getStatus(() => { }), this.pollInterval * 1000);
         } else {
-            if (this.debug) this.log('Polling disabled');
+            this._debugLog('Polling disabled');
             this.service.getCharacteristic(Characteristic.CurrentDoorState).updateValue(1);
             this.service.getCharacteristic(Characteristic.TargetDoorState).updateValue(1);
         }
