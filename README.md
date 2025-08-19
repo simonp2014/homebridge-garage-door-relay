@@ -2,20 +2,26 @@
   <a href="https://github.com/homebridge/homebridge"><img src="https://raw.githubusercontent.com/homebridge/branding/master/logos/homebridge-color-round-stylized.png" height="140"></a>
 </p>
 
-# homebridge-garage-door-shelly1
+# homebridge-garage-door-relay
 
-[![npm](https://img.shields.io/npm/v/homebridge-garage-door-shelly1.svg)](https://www.npmjs.com/package/homebridge-garage-door-shelly1) [![npm](https://img.shields.io/npm/dt/homebridge-garage-door-shelly1.svg)](https://www.npmjs.com/package/homebridge-garage-door-shelly1)
+[![npm](https://img.shields.io/npm/v/homebridge-garage-door-relay.svg)](https://www.npmjs.com/package/homebridge-garage-door-relay) [![npm](https://img.shields.io/npm/dt/homebridge-garage-door-relay.svg)](https://www.npmjs.com/package/homebridge-garage-door-relay)
 
-This work is forked from https://github.com/andreaseu/homebridge-garage-remote-http. Kudos to Andreas.
+This work is forked from https://github.com/calvarium/homebridge-http-garage-door. 
 
 ## Description
 
-This [homebridge](https://github.com/nfarina/homebridge) plugin exposes a web-based garage opener to Apple's [HomeKit](http://www.apple.com/ios/home/). Using simple HTTP requests, the plugin allows you to open/close the garage. It works as a general purpose HTTP client for any relay, but it works particularly well with a Shelly 1 relay.
+This [homebridge](https://github.com/nfarina/homebridge) plugin exposes a web-based garage opener to Apple's [HomeKit](http://www.apple.com/ios/home/).
+Using simple HTTP requests, the plugin allows you to open/close the garage. It works as a general purpose HTTP client for any relay, but it works particularly wel
+l with a Shelly 1 relay.
+
+This version was created with the following aims:
+- Use event driven sensor updates instead of polling for improved feedback of door state during operation
+- Support garage doors with sensors at the closed position, opened position, both or neither. 
 
 ## Installation
 
 1. Install [Homebridge](https://github.com/homebridge/homebridge).
-2. Install the plugin by running `npm install -g homebridge-garage-door-shelly1` or by searching for `homebridge-garage-door-shelly1` on the [plugins tab](https://github.com/homebridge/homebridge#installing-plugins) if you are using [Homebridge UI](https://www.npmjs.com/package/homebridge-config-ui-x) or [Hoobs](https://hoobs.org/).
+2. Install the plugin by running `npm install -g homebridge-garage-door-relay` or by searching for `homebridge-garage-door-relay` on the [plugins tab](https://github.com/homebridge/homebridge#installing-plugins) if you are using [Homebridge UI](https://www.npmjs.com/package/homebridge-config-ui-x) or [Hoobs](https://hoobs.org/).
 3. Update your Homebridge `config.json` accordingly.
 
 ## Configuration
