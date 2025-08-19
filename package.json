@@ -1,7 +1,8 @@
 {
   "name": "homebridge-garage-door-relay",
-  "version": "1.1.6",
+  "version": "1.0.0",
   "description": "Homebridge plugin for a simple garage door opener using a relay and a sensor",
+  "homepage": "https://github.com/simonp2014/homebridge-garage-door-relay",
   "main": "index.js",
   "engines": {
     "homebridge": ">=0.4.50",
@@ -33,9 +34,9 @@
   "author": "Simon Perkins",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/calvarium/homebridge-http-garage-door/issues"
+    "url": "https://github.com/simonp2014/homebridge-garage-door-relay/issues"
   },
-  "homepage": "https://github.com/calvarium/homebridge-http-garage-door#readme",
+
   "devDependencies": {
     "eslint": "^9.29.0",
     "jest": "^30.0.2"
