@@ -73,13 +73,13 @@
                 "description": "Time (in seconds) to simulate your garage closing"
             },
             "autoClose": {
-                "title": "Auto lock",
+                "title": "Auto close",
                 "type": "boolean",
                 "default": false,
                 "description": "Whether your garage should auto-close after being opened"
             },
             "autoCloseDelay": {
-                "title": "Auto lock delay",
+                "title": "Auto close delay",
                 "type": "integer",
                 "default": 20,
                 "description": "Time (in seconds) until your garage will automatically close (if enabled)"
