@@ -4,102 +4,118 @@
     "singular": false,
     "schema": {
         "type": "object",
-        "properties": {
-            "name": {
-                "title": "Name",
-                "type": "string",
-                "required": true,
-                "description": "Name to appear in the Home app"
+      "properties": {
+        "name": {
+          "title": "Name",
+          "type": "string",
+          "required": true,
+          "description": "Name to appear in the Home app"
 
+        },
+        "http_method": {
+          "title": "HTTP Method",
+          "type": "string",
+          "oneOf": [
+            {
+              "title": "GET",
+              "enum": [
+                "GET"
+              ]
             },
-            "http_method": {
-                "title": "HTTP Method",
-                "type": "string",
-                "oneOf": [{
-                    "title": "GET",
-                    "enum": [
-                        "GET"
-                    ]
-                }, {
-                    "title": "POST",
-                    "enum": [
-                        "POST"
-                    ]
-                }],
-                "required": true,
-                "default": "GET",
-                "description": "The HTTP method to be used to communicate with the device API."
-
-            },
-            "openURL": {
-                "title": "Open URL",
-                "type": "string",
-                "required": true,
-                "description": "URL to trigger the opening of your garage"
-            },
-            "closeURL": {
-                "title": "Close URL",
-                "type": "string",
-                "required": true,
-                "description": "URL to trigger the closing of your garage"
-            },
-            "username": {
-                "title": "Username",
-                "type": "string",
-                "description": "Username if HTTP authentication is enabled"
-            },
-            "password": {
-                "title": "Password",
-                "type": "string",
-                "description": "Password if HTTP authentication is enabled"
-            },
-            "webhookPort": {
-                "title": "Webhook Port",
-                "type": "integer",
-                "description": "Port for local webhook server listening on /garage/update"
-            },
-
-            "openTime": {
-                "title": "Time to open the door",
-                "type": "integer",
-                "required": true,
-                "default": 10,
-                "description": "Time (in seconds) to simulate your garage opening"
-            },
-            "closeTime": {
-                "title": "Time to close the door",
-                "type": "integer",
-                "default": 10,
-                "description": "Time (in seconds) to simulate your garage closing"
-            },
-            "autoClose": {
-                "title": "Auto close",
-                "type": "boolean",
-                "default": false,
-                "description": "Whether your garage should auto-close after being opened"
-            },
-            "autoCloseDelay": {
-                "title": "Auto close delay",
-                "type": "integer",
-                "default": 20,
-                "description": "Time (in seconds) until your garage will automatically close (if enabled)"
-            },
-            "manufacturer": {
-                "title": "Manufactor",
-                "type": "string",
-                "description": "Appears under the Manufacturer field for the accessory"
-            },
-            "model": {
-                "title": "Model",
-                "type": "string",
-                "description": "Appears under the Model field for the accessory"
-            },
-            "debug": {
-                "title": "Debug mode",
-                "type": "boolean",
-                "default": false,
-                "description": "Turn on debug mode, i.e. additional information will show up on the homebridge log."
+            {
+              "title": "POST",
+              "enum": [
+                "POST"
+              ]
             }
+          ],
+          "required": true,
+          "default": "GET",
+          "description": "The HTTP method to be used to communicate with the device API."
+
+        },
+        "openURL": {
+          "title": "Open URL",
+          "type": "string",
+          "required": true,
+          "description": "URL to trigger the opening of your garage"
+        },
+        "closeURL": {
+          "title": "Close URL",
+          "type": "string",
+          "required": true,
+          "description": "URL to trigger the closing of your garage"
+        },
+        "username": {
+          "title": "Username",
+          "type": "string",
+          "description": "Username if HTTP authentication is enabled"
+        },
+        "password": {
+          "title": "Password",
+          "type": "string",
+          "description": "Password if HTTP authentication is enabled"
+        },
+        "webhookPort": {
+          "title": "Webhook Port",
+          "type": "integer",
+          "description": "Port for local webhook server listening on /garage/update"
+        },
+
+        "openTime": {
+          "title": "Time to open the door",
+          "type": "integer",
+          "required": true,
+          "default": 10,
+          "description": "Time (in seconds) to simulate your garage opening"
+        },
+        "closeTime": {
+          "title": "Time to close the door",
+          "type": "integer",
+          "default": 10,
+          "description": "Time (in seconds) to simulate your garage closing"
+        },
+        "autoClose": {
+          "title": "Auto close",
+          "type": "boolean",
+          "default": false,
+          "description": "Whether your garage should auto-close after being opened. hasClosedSensor and hasOpenSensor must be false"
+        },
+        "autoCloseDelay": {
+          "title": "Auto close delay",
+          "type": "integer",
+          "default": 20,
+          "description": "Time (in seconds) until your garage will automatically close (if enabled)."
+        },
+
+        "hasClosedSensor": {
+          "title": "Has Closed Sensor",
+          "type": "boolean",
+          "required": true,
+          "description": "Does the door have a sensor that will fire to indicate that the door is closed"
+        },
+        "hasOpenSensor": {
+          "title": "Has Open Sensor",
+          "type": "boolean",
+          "required": true,
+          "description": "Does the door have a sensor that will fire to indicate that the door is open"
+        },
+        "manufacturer": {
+          "title": "Manufactor",
+          "type": "string",
+          "description": "Appears under the Manufacturer field for the accessory"
+        },
+        "model": {
+          "title": "Model",
+          "type": "string",
+          "description": "Appears under the Model field for the accessory"
+        },
+        "debug": {
+          "title": "Debug mode",
+          "type": "boolean",
+          "default": false,
+          "description": "Turn on debug mode, i.e. additional information will show up on the homebridge log."
         }
+      }
     }
 }

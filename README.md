@@ -40,6 +40,8 @@ NOTE: Don't forget to update `shelly_ip` to the IP address of your Shelly relay.
         "closeURL": "http://shelly_ip/relay/0?turn=on",
         "autoClose": false,
         "autoCloseDelay": 60,
+        "hasClosedSensor": true,
+        "hasOpenSensor": false,
         "openTime": 21,
         "closeTime": 17,
         "username": "garage",
@@ -62,6 +64,8 @@ NOTE: Don't forget to update `shelly_ip` to the IP address of your Shelly relay.
 | `name`      | Name to appear in the Home app            | N/A     |
 | `openURL`   | URL to trigger the opening of your garage | N/A     |
 | `closeURL`  | URL to trigger the closing of your garage | N/A     |
+| `hasClosedSensor` | Whether your garage has a closed sensor (true/false) | N/A |
+| `hasOpenSensor`   | Whether your garage has an open sensor (true/false)   | N/A |
 
 ### Optional fields
 

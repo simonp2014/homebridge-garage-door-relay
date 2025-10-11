@@ -20,6 +20,8 @@ class GarageDoorOpener {
             closeTime = 10,
             autoClose = false,
             autoCloseDelay = 20,
+            hasClosedSensor,
+            hasOpenSensor,
             manufacturer = packageJson.author.name,
             serial = packageJson.version,
             model = packageJson.name,
@@ -34,15 +36,23 @@ class GarageDoorOpener {
 
         Object.assign(this, {
             name, openURL, closeURL, openTime, closeTime, 
-            autoClose, autoCloseDelay, manufacturer, serial, model, firmware,
+            autoClose, autoCloseDelay, hasClosedSensor, hasOpenSensor, manufacturer, serial, model, firmware,
             username, password, timeout, webhookPort, http_method, 
         });
+
+        if (autoClose && (hasClosedSensor || hasOpenSensor) ) {
+            throw new Error('autoClose cannot be used with hasClosedSensor or hasOpenSensor');
+        }
+
+        if (!autoClose && !hasClosedSensor && !hasOpenSensor) {
+            throw new Error('hasClosedSensor or hasOpenSensor must be set if autoClose is not used');
+        }
 
         this.auth = (username && password) ? { user: username, pass: password } : undefined;
         this.httpClient = new HttpClient(log, { debug, http_method, timeout, auth: this.auth });
 
         if (webhookPort) {
-            this.webhookServer = new WebhookServer(log, webhookPort, debug, () => this.handleWebhook());
+            this.webhookServer = new WebhookServer(log, webhookPort, debug, (queryParams) => this.handleWebhook(queryParams));
         }
 
         this.service = new Service.GarageDoorOpener(name);
@@ -156,10 +166,10 @@ class GarageDoorOpener {
         setTimeout(action, delay * 1000);
     }
 
-    handleWebhook(query = {}) {
+    handleWebhook(query) {
         const currentState = this.getCurrentDoorState();
         const targetState = this.service.getCharacteristic(Characteristic.TargetDoorState).value;
-        this._debugLog('Webhook received, currentState: %s, targetState: %s, query: %j', currentState, targetState, query);
+        this._debugLog('Webhook received 2, currentState: %s, targetState: %s, query: %j', currentState, targetState, query);
 
         // Check for open=true in the query string
         if (query.open === 'true') {
@@ -169,6 +179,14 @@ class GarageDoorOpener {
             this._simulateMovement(2, this.openTime, 'opening');
             return;
         }
+
+        if (query.closed === 'true') {
+            this.log('Webhook sensor: closed=true detected');
+            // You can trigger closing logic here if needed, e.g.:
+            //this.service.getCharacteristic(Characteristic.TargetDoorState).updateValue(1);
+            return;
+        }
+
 
         if ('open' in query) {
             // 'open' exists in the query object

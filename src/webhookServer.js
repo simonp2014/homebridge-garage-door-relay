@@ -20,7 +20,7 @@ class WebhookServer {
             }
             this.server = http.createServer((req, res) => {
                 if (this.debug) {
-                    this.log('Webhook request: %s %s', req.method, req.url);
+                    this.log('Webhook request: %s %s %s', req.method, req.url);
                 }
                 try {
                     // Recieve updates to sensor states, e.g.
@@ -31,7 +31,7 @@ class WebhookServer {
                     // Use periodic_update=true if this was a background update
                     // in case a sensor change was missed
                     const parsedUrl = url.parse(req.url, true);
-                    if (parsedUrl.pathname === '/garage/sensor') {
+                    if (parsedUrl.pathname === '/garage/sensor/') {
                         const queryParams = parsedUrl.query; // dictionary of name/value pairs
                         if (typeof this.handler === 'function') {
                             this.handler(queryParams);
