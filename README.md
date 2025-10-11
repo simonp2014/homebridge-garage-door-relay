@@ -42,17 +42,11 @@ NOTE: Don't forget to update `shelly_ip` to the IP address of your Shelly relay.
         "autoCloseDelay": 60,
         "openTime": 21,
         "closeTime": 17,
-        "polling": true,
-        "pollInterval": 60,
         "username": "garage",
         "password": "Mh4hc7EDJF8mMkzv",
         "webhookPort": 51828,
         "manufacturer": "BFT",
         "model": "SCE-MA (Board)",
-        "statusURL": "http://shelly_ip/status",
-        "statusKey": "$.inputs[0].input",
-        "statusValueOpen": "0",
-        "statusValueClosed": "1",
         "debug": "false"
     }
 ]
@@ -77,14 +71,6 @@ NOTE: Don't forget to update `shelly_ip` to the IP address of your Shelly relay.
 | `closeTime`          | Time (in seconds) to simulate your garage closing                                                                                                                           | `10`                |
 | `autoClose`           | Whether your garage should auto-close after being opened                                                                                                                    | `false`             |
 | `autoCloseDelay`      | Time (in seconds) until your garage will automatically close (if enabled)                                                                                                   | `20`                |
-| `polling`            | Whether the state should be polled at intervals                                                                                                                             | `false`             |
-| `pollInterval`       | Time (in seconds) between device polls (if `polling` is enabled)                                                                                                            | `120`               |
-| `statusURL`          | URL to retrieve state on poll (if `statusField*` options are not set, expects HTTP response body to be `0` or `1`)                                                          | N/A                 |
-| `statusKey`          | [JSONPath](https://www.npmjs.com/package/jsonpath) that identifies the property that contains the status of the door (e.g. `$.inputs[0].input` is the default for Shelly 1) | `$.inputs[0].input` |
-| `statusValueOpen`    | Regex that will match the `open` state of the relay status (e.g. `open`)                                                                                                    | `0`                 |
-| `statusValueClosed`  | Regex that will match the `closed` state of the relay status (e.g. `closed`)                                                                                                | `1`                 |
-| `statusValueOpening` | Regex that will match the `opening` state of the relay status (e.g. `opening`)                                                                                              | `2`                 |
-| `statusValueClosing` | Regex that will match the `closing` state of the relay status (e.g. `closing`)                                                                                              | `3`                 |
 
 ### Additional options
 
@@ -136,29 +122,5 @@ In order to know for sure if your gate is open or closed you need to install a R
 
 For Shelly 1 and a normally open reed switch (NO) the following options need to be set:
 
-```json
-"accessories": [
-     {
-       ...
-		 "statusKey": "$.inputs[0].input",
-		 "statusValueOpen": "0",
-		 "statusValueClosed": "1"
-		 ...
-	  }
-	]
-```
 
-For a normally closed switch (NC), use:
-
-```json
-"accessories": [
-     {
-       ...
-		 "statusKey": "$.inputs[0].input",
-		 "statusValueOpen": "1",
-		 "statusValueClosed": "0"
-		 ...
-	  }
-	]
-```
 

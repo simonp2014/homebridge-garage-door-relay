@@ -1,4 +1,5 @@
 const http = require('http');
+const url = require('url');
 
 class WebhookServer {
     constructor(log, port, debug, handler) {
@@ -22,9 +23,18 @@ class WebhookServer {
                     this.log('Webhook request: %s %s', req.method, req.url);
                 }
                 try {
-                    if (req.url === '/garage/update') {
+                    // Recieve updates to sensor states, e.g.
+                    // closed=true or closed=false (if it has a closed sensor)
+                    // or
+                    // open=true or open=false (if it has an open sensor)
+                    //
+                    // Use periodic_update=true if this was a background update
+                    // in case a sensor change was missed
+                    const parsedUrl = url.parse(req.url, true);
+                    if (parsedUrl.pathname === '/garage/sensor') {
+                        const queryParams = parsedUrl.query; // dictionary of name/value pairs
                         if (typeof this.handler === 'function') {
-                            this.handler();
+                            this.handler(queryParams);
                         }
                         res.statusCode = 200;
                         res.end('OK');

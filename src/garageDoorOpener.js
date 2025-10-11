@@ -29,23 +29,13 @@ class GarageDoorOpener {
             timeout = 3000,
             webhookPort = null,
             http_method = 'GET',
-            polling = false,
-            pollInterval = 120,
-            statusURL,
-            statusKey = '$.inputs[0].input',
-            statusValueOpen = '0',
-            statusValueClosed = '1',
-            statusValueOpening = '2',
-            statusValueClosing = '3',
             debug = false
         } = config;
 
         Object.assign(this, {
             name, openURL, closeURL, openTime, closeTime, 
             autoClose, autoCloseDelay, manufacturer, serial, model, firmware,
-            username, password, timeout, webhookPort, http_method, polling,
-            pollInterval, statusURL, statusKey, statusValueOpen, statusValueClosed,
-            statusValueOpening, statusValueClosing
+            username, password, timeout, webhookPort, http_method, 
         });
 
         this.auth = (username && password) ? { user: username, pass: password } : undefined;
@@ -166,43 +156,22 @@ class GarageDoorOpener {
         setTimeout(action, delay * 1000);
     }
 
-    handleWebhook() {
+    handleWebhook(query = {}) {
         const currentState = this.getCurrentDoorState();
         const targetState = this.service.getCharacteristic(Characteristic.TargetDoorState).value;
-        this._debugLog('Webhook received, currentState: %s, targetState: %s', currentState, targetState);
-        try {
-            switch (currentState) {
-                case 1: // Closed -> start opening
-                    this.log('Started opening');
-                    this.service.getCharacteristic(Characteristic.TargetDoorState).updateValue(0);
-                    this._simulateMovement(2, this.openTime, 'opening');
-                    break;
-                case 0: // Open -> start closing
-                    this.log('Started closing');
-                    this.service.getCharacteristic(Characteristic.TargetDoorState).updateValue(1);
-                    this._simulateMovement(3, this.closeTime, 'closing');
-                    break;
-                case 2: // Opening -> stop
-                case 3: // Closing -> stop
-                    this.log('Stopping movement');
-                    if (this.movementTimeout) clearTimeout(this.movementTimeout);
-                    this.movementTimeout = null;
-                    this.service.getCharacteristic(Characteristic.CurrentDoorState).updateValue(4);
-                    break;
-                case 4: // Stopped -> reverse direction
-                    if (targetState === 0) {
-                        this.log('Reversing to close');
-                        this.service.getCharacteristic(Characteristic.TargetDoorState).updateValue(1);
-                        this._simulateMovement(3, this.closeTime, 'closing');
-                    } else {
-                        this.log('Reversing to open');
-                        this.service.getCharacteristic(Characteristic.TargetDoorState).updateValue(0);
-                        this._simulateMovement(2, this.openTime, 'opening');
-                    }
-                    break;
-            }
-        } catch (err) {
-            this.log.error('Failed to handle webhook: %s', err.message);
+        this._debugLog('Webhook received, currentState: %s, targetState: %s, query: %j', currentState, targetState, query);
+
+        // Check for open=true in the query string
+        if (query.open === 'true') {
+            this.log('Webhook sensor: open=true detected');
+            // You can trigger opening logic here if needed, e.g.:
+            this.service.getCharacteristic(Characteristic.TargetDoorState).updateValue(0);
+            this._simulateMovement(2, this.openTime, 'opening');
+            return;
+        }
+
+        if ('open' in query) {
+            // 'open' exists in the query object
         }
     }
 
@@ -229,15 +198,10 @@ class GarageDoorOpener {
         this.service.getCharacteristic(Characteristic.TargetDoorState)
             .on('set', this.setTargetDoorState.bind(this));
 
-        if (this.polling) {
-            this._debugLog('Polling enabled with interval %s seconds', this.pollInterval);
-            this._getStatus(() => { });
-            setInterval(() => this._getStatus(() => { }), this.pollInterval * 1000);
-        } else {
-            this._debugLog('Polling disabled');
-            this.service.getCharacteristic(Characteristic.CurrentDoorState).updateValue(1);
-            this.service.getCharacteristic(Characteristic.TargetDoorState).updateValue(1);
-        }
+        // Set the initial state to closed??
+        //this._debugLog('Polling disabled');
+        //this.service.getCharacteristic(Characteristic.CurrentDoorState).updateValue(1);
+        //this.service.getCharacteristic(Characteristic.TargetDoorState).updateValue(1);
 
         return [this.informationService, this.service];
     }

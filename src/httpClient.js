@@ -33,41 +33,6 @@ class HttpClient {
             }
         });
     }
-
-    getStatus(url, statusKey, values, callback) {
-        if (this.debug && this.log) {
-            this.log('Getting status: %s', url);
-        }
-        this.request(url, '', 'GET', (error, response, responseBody) => {
-            if (error) {
-                callback(error);
-                return;
-            }
-            let statusValue = 0;
-            if (statusKey) {
-                const originalStatusValue = jp.query(
-                    typeof responseBody === 'string' ? JSON.parse(responseBody) : responseBody,
-                    statusKey,
-                    1
-                ).pop();
-                if (new RegExp(values.open).test(originalStatusValue)) {
-                    statusValue = 0;
-                } else if (new RegExp(values.closed).test(originalStatusValue)) {
-                    statusValue = 1;
-                } else if (new RegExp(values.opening).test(originalStatusValue)) {
-                    statusValue = 2;
-                } else if (new RegExp(values.closing).test(originalStatusValue)) {
-                    statusValue = 3;
-                }
-                if (this.debug && this.log) {
-                    this.log('Transformed status value from %s to %s (%s)', originalStatusValue, statusValue, statusKey);
-                }
-            } else {
-                statusValue = responseBody;
-            }
-            callback(null, statusValue);
-        });
-    }
 }
 
 module.exports = HttpClient;
