@@ -6,6 +6,14 @@ let Service;
 let Characteristic;
 const instances = [];
 
+const DoorState = Object.freeze({
+    OPEN: 0,
+    CLOSED: 1,
+    OPENING: 2,
+    CLOSING: 3,
+    STOPPED: 4
+});
+
 class GarageDoorOpener {
     constructor(log, config) {
         this.log = log;
@@ -115,12 +123,16 @@ class GarageDoorOpener {
     }
 
     setTargetDoorState(value, callback) {
-        const isClosing = value === 1;
+        const isClosing = value === DoorState.CLOSED;
         const url = isClosing ? this.closeURL : this.openURL;
         this.log('Setting targetDoorState to %s', value);
         this._debugLog('Requesting URL: %s', url);
 
-        this._simulateMovement(isClosing ? 3 : 2, isClosing ? this.closeTime : this.openTime, isClosing ? 'closing' : 'opening');
+        this._simulateMovement(
+            isClosing ? DoorState.CLOSING : DoorState.OPENING,
+            isClosing ? this.closeTime : this.openTime,
+            isClosing ? 'closing' : 'opening'
+        );
 
         this._httpRequest(url, '', this.http_method, (error) => {
             if (error) {
@@ -157,7 +169,7 @@ class GarageDoorOpener {
         this._debugLog('autoCloseFunction called');
         this.log('Waiting %s seconds for autoClose', this.autoCloseDelay);
         setTimeout(() => {
-            this.service.setCharacteristic(Characteristic.TargetDoorState, 1);
+            this.service.setCharacteristic(Characteristic.TargetDoorState, DoorState.CLOSED);
             this.log('autoCloseing...');
         }, this.autoCloseDelay * 1000);
     }
@@ -171,25 +183,28 @@ class GarageDoorOpener {
         const targetState = this.service.getCharacteristic(Characteristic.TargetDoorState).value;
         this._debugLog('Webhook received 2, currentState: %s, targetState: %s, query: %j', currentState, targetState, query);
 
+        if ('open' in query) {
+            if (!this.hasOpenSensor) {
+                this.log.warn('Received "open" in webhook but hasOpenSensor is not enabled');
+                return;
+            }
+
+            // 'open' exists in the query object
+        }
+
         // Check for open=true in the query string
         if (query.open === 'true') {
             this.log('Webhook sensor: open=true detected');
-            // You can trigger opening logic here if needed, e.g.:
-            this.service.getCharacteristic(Characteristic.TargetDoorState).updateValue(0);
-            this._simulateMovement(2, this.openTime, 'opening');
+            this.service.getCharacteristic(Characteristic.TargetDoorState).updateValue(DoorState.OPEN);
+            this._simulateMovement(DoorState.OPENING, this.openTime, 'opening');
             return;
         }
 
         if (query.closed === 'true') {
             this.log('Webhook sensor: closed=true detected');
             // You can trigger closing logic here if needed, e.g.:
-            //this.service.getCharacteristic(Characteristic.TargetDoorState).updateValue(1);
+            // this.service.getCharacteristic(Characteristic.TargetDoorState).updateValue(DoorState.CLOSED);
             return;
-        }
-
-
-        if ('open' in query) {
-            // 'open' exists in the query object
         }
     }
 
@@ -216,10 +231,10 @@ class GarageDoorOpener {
         this.service.getCharacteristic(Characteristic.TargetDoorState)
             .on('set', this.setTargetDoorState.bind(this));
 
-        // Set the initial state to closed??
-        //this._debugLog('Polling disabled');
-        //this.service.getCharacteristic(Characteristic.CurrentDoorState).updateValue(1);
-        //this.service.getCharacteristic(Characteristic.TargetDoorState).updateValue(1);
+        // Set the initial state to closed?? Uncomment if needed:
+        // this._debugLog('Polling disabled');
+        // this.service.getCharacteristic(Characteristic.CurrentDoorState).updateValue(DoorState.CLOSED);
+        // this.service.getCharacteristic(Characteristic.TargetDoorState).updateValue(DoorState.CLOSED);
 
         return [this.informationService, this.service];
     }
