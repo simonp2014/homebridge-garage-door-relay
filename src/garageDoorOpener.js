@@ -349,17 +349,9 @@ class GarageDoorOpener {
         this.service.getCharacteristic(Characteristic.TargetDoorState)
             .on('set', this.setTargetDoorState.bind(this));
 
-        if (this.autoClose)
-        {
-            // If this is an auto-closing door without sensors, start closed
-            this.service.getCharacteristic(Characteristic.CurrentDoorState).updateValue(DoorState.CLOSED);
-            this.service.getCharacteristic(Characteristic.TargetDoorState).updateValue(DoorState.CLOSED);
-        }
-
-        // Set the initial state to closed?? Uncomment if needed:
-        // this._debugLog('Polling disabled');
-        // this.service.getCharacteristic(Characteristic.CurrentDoorState).updateValue(DoorState.CLOSED);
-        // this.service.getCharacteristic(Characteristic.TargetDoorState).updateValue(DoorState.CLOSED);
+        // Assume the door is closed when HomeKit starts
+        this.service.getCharacteristic(Characteristic.CurrentDoorState).updateValue(DoorState.CLOSED);
+        this.service.getCharacteristic(Characteristic.TargetDoorState).updateValue(DoorState.CLOSED);
 
         return [this.informationService, this.service];
     }
