@@ -28,7 +28,7 @@ class WebhookServer {
                     // or
                     // open=true or open=false (if it has an open sensor)
                     //
-                    // Use periodic_update=true if this was a background update
+                    // Use background=true if this was a background update
                     // in case a sensor change was missed
                     const parsedUrl = url.parse(req.url, true);
                     if (parsedUrl.pathname === '/garage/sensor/') {
