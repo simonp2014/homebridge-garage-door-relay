@@ -65,8 +65,7 @@ class GarageDoorOpener {
 
         this.service = new Service.GarageDoorOpener(name);
         this.informationService = null;
-        this.movementTimeout = null;
-        this.isInSimulatedMovement = false;
+        this.delayedActionTimeoutID = null;
         this.debug = debug;
 
         instances.push(this);
@@ -122,60 +121,147 @@ class GarageDoorOpener {
         );
     }
 
-    setTargetDoorState(value, callback) {
-        const isClosing = value === DoorState.CLOSED;
-        const url = isClosing ? this.closeURL : this.openURL;
-        this.log('Setting targetDoorState to %s', value);
-        this._debugLog('Requesting URL: %s', url);
+    _startDoorClose(callback) {
+        this.log('Starting to close the door');
+        // Make sure any oustanding delayed action is cancelled
+        this._clearDelayedAction();
 
-        this._simulateMovement(
-            isClosing ? DoorState.CLOSING : DoorState.OPENING,
-            isClosing ? this.closeTime : this.openTime,
-            isClosing ? 'closing' : 'opening'
-        );
+        this.setCurrentDoorState(DoorState.CLOSING);
 
-        this._httpRequest(url, '', this.http_method, (error) => {
+        this._httpRequest(this.closeURL, '', this.http_method, (error) => {
             if (error) {
-                this.log.warn('Error setting targetDoorState: %s', error.message);
+                this.log.warn('Error setting sending door open command: %s', error.message);
+                // Revert to open state on error
+                this.setCurrentDoorState(DoorState.OPEN);
                 callback(error);
             } else {
-                if (!isClosing) {
-                    if (this.switchOff) this._delayedAction(this.switchOffDelay, this.switchOffFunction.bind(this));
-                    if (this.autoClose) this._delayedAction(this.autoCloseDelay, this.autoCloseFunction.bind(this));
+                if (!this.hasClosedSensor) {
+                    // If there's no closed sensor, simulate the door closing
+                    // by delayintg the change to the close state
+                    this._delayedAction(this.closeTime, () => {
+                        this.setCurrentDoorState(DoorState.CLOSED);
+                        this.log('Door closed (simulated)');
+                    });
+                }
+                else
+                {
+                    // Create a delayed action to fire if closed sensor doesn't trigger
+                    // after 1.5x the expected close time
+                    this._delayedAction(this.closeTime * 1.5, () => {
+                        this.log.warn('Closed sensor did not trigger, assuming door is stopped');
+                        this.setCurrentDoorState(DoorState.STOPPED);
+                    });
                 }
                 callback();
             }
         });
     }
 
+    _startDoorOpen(callback) {
+        this.log('Starting to open the door');
+        // Make sure any oustanding delayed action is cancelled
+        this._clearDelayedAction();
+
+        this.setCurrentDoorState(DoorState.OPENING);
+        this._httpRequest(this.openURL, '', this.http_method, (error) => {
+            if (error) {
+                this.log.warn('Error setting sending door open command: %s', error.message);
+                // Revert to closed state on error
+                this.setCurrentDoorState(DoorState.CLOSED);
+                callback(error);
+            } else {
+                if (!this.hasOpenSensor) {
+                    // If there's no open sensor, simulate the door opening
+                    // by delaying the change to the open state
+                    this._delayedAction(this.openTime, () => {
+                        this.setCurrentDoorState(DoorState.OPEN);
+                        this.log('Door opened (simulated)');
+
+                        // Trigger auto-close if enabled
+                        if (this.autoClose) {
+                            this._delayedAction(this.autoCloseDelay, () => {
+                                this.setCurrentDoorState(DoorState.CLOSING);
+                                this.log('Auto-closing door');
+                                this._delayedAction(this.closeTime, () => {
+                                    this.setCurrentDoorState(DoorState.CLOSED);
+                                    this.log('Door closed (auto-close simulated)');
+                                });
+                            });
+                        }
+                    });
+                }
+                else {
+                    // Create a delayed action to fire if open sensor doesn't trigger
+                    // after 1.5x the expected open time
+                    this._delayedAction(this.openTime * 1.5, () => {
+                        this.log.warn('Open sensor did not trigger, assuming door is stopped');
+                        this.setCurrentDoorState(DoorState.STOPPED);
+                    });
+                }
+                callback();
+            }
+        });
+    }
+
+    setTargetDoorState(value, callback) {
+
+        var currentState = this.getCurrentDoorState();
+        // comman to change the door state (e.g. DoorState.CLOSED to close it)
+        this.log('Setting targetDoorState to %s', value);
+        if (value === currentState) {
+            this.log('Target state is the same as current state, no action needed - state = %s', value);
+        }
+        else if (value === DoorState.CLOSED) {
+            if (this.autoClose) {
+                this.log('Ignore close request for an auto close door');
+            }
+            else if (currentState === DoorState.CLOSING) {
+                this.log('Door is already closing, no action needed');
+            }
+            else {
+                this._startDoorClose(callback);
+                return;
+            }
+        }
+        else if (value === DoorState.OPEN) {
+            if (currentState === DoorState.OPENING) {
+                this.log('Door is already opening, no action needed');
+            }
+            else {
+                this._startDoorOpen(callback);
+                return;
+            }
+        }
+        else {
+            this.log.warn('Unsupported targetDoorState value: %s', value);
+        }
+
+        callback();
+    }
+
     getCurrentDoorState() {
         return this.service.getCharacteristic(Characteristic.CurrentDoorState).value;
     }
 
-    _simulateMovement(state, duration, action) {
-        this._debugLog(`simulate${action.charAt(0).toUpperCase() + action.slice(1)} called`);
-        this.isInSimulatedMovement = true;
-        if (this.movementTimeout) clearTimeout(this.movementTimeout);
+    setCurrentDoorState(state) {
         this.service.getCharacteristic(Characteristic.CurrentDoorState).updateValue(state);
-        this.movementTimeout = setTimeout(() => {
-            this.movementTimeout = null;
-            this.isInSimulatedMovement = false;
-            this._getStatus(() => { });
-            this.log(`Finished ${action}`);
-        }, duration * 1000);
     }
 
-    autoCloseFunction() {
-        this._debugLog('autoCloseFunction called');
-        this.log('Waiting %s seconds for autoClose', this.autoCloseDelay);
-        setTimeout(() => {
-            this.service.setCharacteristic(Characteristic.TargetDoorState, DoorState.CLOSED);
-            this.log('autoCloseing...');
-        }, this.autoCloseDelay * 1000);
+    _clearDelayedAction() {
+        // Stopped any pending delayed action and prevent callback being invoked
+        if (this.delayedActionTimeoutID) {
+            clearTimeout(this.delayedActionTimeoutID);
+            this.delayedActionTimeoutID = null;
+        }
     }
 
-    _delayedAction(delay, action) {
-        setTimeout(action, delay * 1000);
+    _delayedAction(delayInSecs, action) {
+        this._clearDelayedAction();
+        this.delayedActionTimeoutID = setTimeout(() => {
+            // Clear the timeout ID before calling the action to prevent re-entrancy issues
+            this.delayedActionTimeoutID = null;
+            action();
+        }, delayInSecs * 1000);
     }
 
     handleWebhook(query) {
@@ -190,7 +276,18 @@ class GarageDoorOpener {
             }
 
             // 'open' exists in the query object
+            return;
         }
+
+        if ('closed' in query) {
+            if (!this.hasClosedSensor) {
+                this.log.warn('Received "closed" in webhook but hasClosedSensor is not enabled');
+                return;
+            }
+            // 'closed' exists in the query object
+            return;
+        }
+
 
         // Check for open=true in the query string
         if (query.open === 'true') {
@@ -230,6 +327,13 @@ class GarageDoorOpener {
 
         this.service.getCharacteristic(Characteristic.TargetDoorState)
             .on('set', this.setTargetDoorState.bind(this));
+
+        if (this.autoClose)
+        {
+            // If this is an auto-closing door without sensors, start closed
+            this.service.getCharacteristic(Characteristic.CurrentDoorState).updateValue(DoorState.CLOSED);
+            this.service.getCharacteristic(Characteristic.TargetDoorState).updateValue(DoorState.CLOSED);
+        }
 
         // Set the initial state to closed?? Uncomment if needed:
         // this._debugLog('Polling disabled');
