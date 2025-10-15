@@ -52,6 +52,18 @@ class GarageDoorOpener {
             throw new Error('autoClose cannot be used with hasClosedSensor or hasOpenSensor');
         }
 
+        if (typeof openURL !== 'string' || openURL.length === 0) {
+            throw new Error('openURL must be a non-empty string');
+        }
+
+        if (!autoClose && (typeof closeURL !== 'string' || closeURL.length === 0)) {
+            throw new Error('closeURL must be a non-empty string if autoClose is not used');
+        }
+
+        if (autoClose && webhookPort) {
+            throw new Error('autoClose cannot be used with webhook. Remove webhookPort or set to zero');
+        }
+
         if (!autoClose && !hasClosedSensor && !hasOpenSensor) {
             throw new Error('hasClosedSensor or hasOpenSensor must be set if autoClose is not used');
         }

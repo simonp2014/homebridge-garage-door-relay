@@ -43,8 +43,7 @@
         "closeURL": {
           "title": "Close URL",
           "type": "string",
-          "required": true,
-          "description": "URL to trigger the closing of your garage"
+          "description": "URL to trigger the closing of your garage. Not required for auto close"
         },
         "username": {
           "title": "Username",
@@ -59,7 +58,7 @@
         "webhookPort": {
           "title": "Webhook Port",
           "type": "integer",
-          "description": "Port for local webhook server listening on /garage/update"
+          "description": "Port for local webhook server listening on <homebridgehost>:<webport>/?<status update>"
         },
 
         "openTime": {

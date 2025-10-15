@@ -20,7 +20,7 @@ class WebhookServer {
             }
             this.server = http.createServer((req, res) => {
                 if (this.debug) {
-                    this.log('Webhook request: %s %s %s', req.method, req.url);
+                    this.log('Webhook request: %s %s', req.method, req.url);
                 }
                 try {
                     // Receive updates to sensor states, e.g.
