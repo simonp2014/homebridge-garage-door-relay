@@ -23,15 +23,19 @@ class WebhookServer {
                     this.log('Webhook request: %s %s %s', req.method, req.url);
                 }
                 try {
-                    // Recieve updates to sensor states, e.g.
+                    // Receive updates to sensor states, e.g.
                     // closed=true or closed=false (if it has a closed sensor)
                     // or
                     // open=true or open=false (if it has an open sensor)
                     //
+                    // e.g. http://<homebridgehost>:<webport>/?closed=true
+                    //
                     // Use background=true if this was a background update
                     // in case a sensor change was missed
+                    //
+                    // e.g. http://<homebridgehost>:<webport>/?closed=false&background=true
                     const parsedUrl = url.parse(req.url, true);
-                    if (parsedUrl.pathname === '/garage/sensor/') {
+                    if (parsedUrl.pathname === '/') {
                         const queryParams = parsedUrl.query; // dictionary of name/value pairs
                         if (typeof this.handler === 'function') {
                             this.handler(queryParams);
