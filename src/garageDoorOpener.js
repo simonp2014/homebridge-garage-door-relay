@@ -113,6 +113,16 @@ class GarageDoorOpener {
 
         this.setCurrentDoorState(DoorState.CLOSING);
 
+        if (this.autoClose) {
+            // If autoClose is enabled, there's no closeURL to call
+            // Just simulate the close
+            this._delayedAction(this.closeTime, () => {
+                this.setCurrentDoorState(DoorState.CLOSED);
+                this.log('Door closed (auto close)');
+            });
+            return;
+        }
+
         this._httpRequest(this.closeURL, '', this.http_method, (error) => {
             if (error) {
                 this.log.warn('Error setting sending door open command: %s', error.message);
@@ -165,12 +175,20 @@ class GarageDoorOpener {
                         // Trigger auto-close if enabled
                         if (this.autoClose) {
                             this._delayedAction(this.autoCloseDelay, () => {
+
+                                this.log('Starting the auto close');
+
+                                // make sure homekit ui is updated correctly by using targetDoorState setter
+                                // setting the targetDoorState here does not trigger _setTargetDoorState callback
+                                // it just sets the value in Homekit
+                                this.service.getCharacteristic(Characteristic.TargetDoorState).updateValue(DoorState.CLOSED);
+
                                 this.setCurrentDoorState(DoorState.CLOSING);
-                                this.log('Auto-closing door');
                                 this._delayedAction(this.closeTime, () => {
                                     this.setCurrentDoorState(DoorState.CLOSED);
                                     this.log('Door closed (auto-close simulated)');
                                 });
+
                             });
                         }
                     });
@@ -197,13 +215,13 @@ class GarageDoorOpener {
             this.log('Target state is the same as current state, no action needed - state = %s', value);
         }
         else if (value === DoorState.CLOSED) {
-            if (this.autoClose) {
-                this.log('Ignore close request for an auto close door');
-            }
-            else if (currentState === DoorState.CLOSING) {
+            if (currentState === DoorState.CLOSING) {
                 this.log('Door is already closing, no action needed');
             }
             else {
+                if (this.autoClose) {
+                    this.log('Now auto closing the door');
+                }
                 this._startDoorClose(callback);
                 return;
             }
