@@ -2,9 +2,16 @@ const packageJson = require('../package.json');
 const HttpClient = require('./httpClient');
 const WebhookServer = require('./webhookServer');
 
+const fs = require('fs');
+const path = require('path');
+
 let Service;
 let Characteristic;
 const instances = [];
+
+let HomebridgeAPI; // capture api so we can get persistPath()
+
+function slug(s) { return String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-'); }
 
 const DoorState = Object.freeze({
     OPEN: 0,
@@ -80,12 +87,42 @@ class GarageDoorOpener {
         this.delayedActionTimeoutID = null;
         this.debug = debug;
 
+        // For saving initial state
+        this.stateFile = path.join(
+            HomebridgeAPI.user.persistPath(),
+            `garage-door-state-${slug(this.name)}.json`
+        );
+
         instances.push(this);
     }
 
-    static configure(service, characteristic) {
-        Service = service;
-        Characteristic = characteristic;
+
+    _loadPersistedState(defaultState) {
+        try {
+            const raw = fs.readFileSync(this.stateFile, 'utf8');
+            const obj = JSON.parse(raw);
+            const v = Number(obj.current);
+            if ([0, 1, 2, 3, 4].includes(v)) return v;
+        } catch {
+            return defaultState;
+        }
+        return defaultState;
+    }
+
+    _savePersistedState(state) {
+        try {
+            fs.writeFileSync(this.stateFile, JSON.stringify({ current: state }));
+        } catch (e) {
+            this.log.warn('Failed to save state:', e.message);
+        }
+    }
+
+    static configure(api) {
+
+        Service = api.hap.Service;
+        Characteristic = api.hap.Characteristic;
+
+        HomebridgeAPI = api;
     }
 
     identify(callback) {
@@ -248,6 +285,10 @@ class GarageDoorOpener {
 
     setCurrentDoorState(state) {
         this.service.getCharacteristic(Characteristic.CurrentDoorState).updateValue(state);
+        if (!this.autoClose) {
+            // Save the state to survice homebridge restarts
+            this._savePersistedState(state);
+        }
     }
 
     _clearDelayedAction() {
@@ -379,9 +420,18 @@ class GarageDoorOpener {
         this.service.getCharacteristic(Characteristic.TargetDoorState)
             .on('set', this.setTargetDoorState.bind(this));
 
-        // Assume the door is closed when HomeKit starts
-        this.service.getCharacteristic(Characteristic.CurrentDoorState).updateValue(DoorState.CLOSED);
-        this.service.getCharacteristic(Characteristic.TargetDoorState).updateValue(DoorState.CLOSED);
+        // Assume the door is closed if auto close or no persisted state
+        var persisted = this.autoClose ? DoorState.CLOSED : this._loadPersistedState(DoorState.CLOSED);
+
+        if (persisted === DoorState.OPENING || persisted === DoorState.CLOSING) {
+            // If it was opening or closing when HomeKit stopped, assume it is stopped now
+            // because we don't know if it finished or not
+            persisted = DoorState.STOPPED;
+        }
+
+        this.service.getCharacteristic(Characteristic.CurrentDoorState).updateValue(persisted);
+        // make Target match Current at boot
+        this.service.getCharacteristic(Characteristic.TargetDoorState).updateValue(persisted );
 
         return [this.informationService, this.service];
     }

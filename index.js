@@ -2,10 +2,9 @@ let Service, Characteristic;
 const GarageDoorOpener = require('./src/garageDoorOpener');
 
 module.exports = function(homebridge) {
-    Service = homebridge.hap.Service;
-    Characteristic = homebridge.hap.Characteristic;
 
-    GarageDoorOpener.configure(Service, Characteristic);
+
+    GarageDoorOpener.configure( homebridge);
 
     homebridge.registerAccessory(
         'homebridge-garage-door-relay',
