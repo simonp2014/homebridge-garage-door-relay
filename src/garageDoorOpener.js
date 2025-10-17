@@ -86,6 +86,7 @@ class GarageDoorOpener {
         this.informationService = null;
         this.delayedActionTimeoutID = null;
         this.debug = debug;
+        this.inHttpRequest = false;
 
         // For saving initial state
         this.stateFile = path.join(
@@ -104,7 +105,7 @@ class GarageDoorOpener {
             const v = Number(obj.current);
             if ([0, 1, 2, 3, 4].includes(v)) return v;
         } catch {
-            return defaultState;
+            this._debugLog('No persisted state found, using default');
         }
         return defaultState;
     }
@@ -130,17 +131,60 @@ class GarageDoorOpener {
         callback();
     }
 
-    _httpRequest(url, body, method, callback) {
+    _httpRequest(url, method, callback) {
+
+        // Keep track of whether we're in an HTTP request
+        this.inHttpRequest = true;
+
+        const doCallback = (error) => {
+            this.inHttpRequest = false;
+            callback(error);
+        };
 
         // If the url starts with http://test-donotcall then don't actually make the call
         // but behave as if it succeeded
         if (url.startsWith('http://test-donotcall')) {
             this.log('Simulating HTTP %s request to %s', method, url);
-            setTimeout(() => callback(), 500);
+            setTimeout(() => { doCallback(null /* no error */) }, 500);
         }
         else {
-            this.httpClient.request(url, body, method, callback);
+            this.httpClient.request(url, method, doCallback);
         }
+    }
+
+    _simulateMissingClosedSensor(logMessage) {
+        this._delayedAction(this.closeTime, () => {
+            this._setCurrentDoorState(DoorState.CLOSED);
+            this._clearDelayedAction();
+            this.log(logMessage);
+        });
+    }
+
+    _simulateMissingOpenSensor(logMessage, onOpenCallback) {
+        this._delayedAction(this.openTime, () => {
+            this._setCurrentDoorState(DoorState.OPEN);
+            this._clearDelayedAction();
+            this.log(logMessage);
+        });
+        if (onOpenCallback) {
+            onOpenCallback();
+        }
+    }
+
+    _catchMissingClosedSensorUpdate() {
+        // This timer action gets cancelled when the closed sensor triggers
+        this._delayedAction(this.closeTime * 1.5, () => {
+            this.log.warn('Closed sensor did not trigger, assuming door is stopped');
+            this._setCurrentDoorState(DoorState.STOPPED);
+        });
+    }
+
+    _catchMissingOpenSensorUpdate() {
+        // This timer action gets cancelled when the open sensor triggers
+        this._delayedAction(this.openTime * 1.5, () => {
+            this.log.warn('Open sensor did not trigger, assuming door is stopped');
+            this._setCurrentDoorState(DoorState.STOPPED);
+        });
     }
 
     _startDoorClose(callback) {
@@ -148,41 +192,28 @@ class GarageDoorOpener {
         // Make sure any oustanding delayed action is cancelled
         this._clearDelayedAction();
 
-        this.setCurrentDoorState(DoorState.CLOSING);
+        this._setCurrentDoorState(DoorState.CLOSING);
 
         if (this.autoClose) {
             // If autoClose is enabled, there's no closeURL to call
             // Just simulate the close
-            this._delayedAction(this.closeTime, () => {
-                this.setCurrentDoorState(DoorState.CLOSED);
-                this.log('Door closed (auto close)');
-            });
+            this._simulateMissingClosedSensor('Door closed (auto close simulated)');
             return;
         }
 
-        this._httpRequest(this.closeURL, '', this.http_method, (error) => {
+        this._httpRequest(this.closeURL, this.http_method, (error) => {
             if (error) {
-                this.log.warn('Error setting sending door open command: %s', error.message);
+                this.log.warn('Error sending door close command: %s', error.message);
                 // Revert to open state on error
-                this.setCurrentDoorState(DoorState.OPEN);
+                this._setFinalDoorStateOverride(DoorState.OPEN);
                 callback(error);
             } else {
                 if (!this.hasClosedSensor) {
-                    // If there's no closed sensor, simulate the door closing
-                    // by delayintg the change to the close state
-                    this._delayedAction(this.closeTime, () => {
-                        this.setCurrentDoorState(DoorState.CLOSED);
-                        this.log('Door closed (simulated)');
-                    });
+                    this._simulateMissingClosedSensor('Door closed (simulated)');
                 }
                 else
                 {
-                    // Create a delayed action to fire if closed sensor doesn't trigger
-                    // after 1.5x the expected close time
-                    this._delayedAction(this.closeTime * 1.5, () => {
-                        this.log.warn('Closed sensor did not trigger, assuming door is stopped');
-                        this.setCurrentDoorState(DoorState.STOPPED);
-                    });
+                    this._catchMissingClosedSensorUpdate();
                 }
                 callback();
             }
@@ -194,58 +225,50 @@ class GarageDoorOpener {
         // Make sure any oustanding delayed action is cancelled
         this._clearDelayedAction();
 
-        this.setCurrentDoorState(DoorState.OPENING);
-        this._httpRequest(this.openURL, '', this.http_method, (error) => {
+        this._setCurrentDoorState(DoorState.OPENING);
+        this._httpRequest(this.openURL, this.http_method, (error) => {
             if (error) {
-                this.log.warn('Error setting sending door open command: %s', error.message);
+                this.log.warn('Error sending door open command: %s', error.message);
                 // Revert to closed state on error
-                this.setCurrentDoorState(DoorState.CLOSED);
+                this._setFinalDoorStateOverride(DoorState.CLOSED);
                 callback(error);
             } else {
                 if (!this.hasOpenSensor) {
-                    // If there's no open sensor, simulate the door opening
-                    // by delaying the change to the open state
-                    this._delayedAction(this.openTime, () => {
-                        this.setCurrentDoorState(DoorState.OPEN);
-                        this.log('Door opened (simulated)');
 
-                        // Trigger auto-close if enabled
-                        if (this.autoClose) {
-                            this._delayedAction(this.autoCloseDelay, () => {
+                    this._simulateMissingOpenSensor('Door opened (simulated)',
 
-                                this.log('Starting the auto close');
+                        // Once opened, trigger auto-close if enabled
+                        () => {
+                            if (this.autoClose) {
+                                this._delayedAction(this.autoCloseDelay, () => {
 
-                                // make sure homekit ui is updated correctly by using targetDoorState setter
-                                // setting the targetDoorState here does not trigger _setTargetDoorState callback
-                                // it just sets the value in Homekit
-                                this.service.getCharacteristic(Characteristic.TargetDoorState).updateValue(DoorState.CLOSED);
+                                    this.log('Starting the auto close');
 
-                                this.setCurrentDoorState(DoorState.CLOSING);
-                                this._delayedAction(this.closeTime, () => {
-                                    this.setCurrentDoorState(DoorState.CLOSED);
-                                    this.log('Door closed (auto-close simulated)');
+                                    // make sure homekit ui is updated correctly by using targetDoorState setter
+                                    // setting the targetDoorState here does not trigger _setTargetDoorState callback
+                                    // it just sets the value in Homekit
+                                    this._setTargetDoorState(DoorState.CLOSED);
+
+                                    this._setCurrentDoorState(DoorState.CLOSING);
+
+                                    // Never a closed sensor in autoClose mode
+                                    this._simulateMissingClosedSensor('Door closed (auto-close simulated)');
                                 });
-
-                            });
-                        }
-                    });
+                            }
+                        });
                 }
                 else {
-                    // Create a delayed action to fire if open sensor doesn't trigger
-                    // after 1.5x the expected open time
-                    this._delayedAction(this.openTime * 1.5, () => {
-                        this.log.warn('Open sensor did not trigger, assuming door is stopped');
-                        this.setCurrentDoorState(DoorState.STOPPED);
-                    });
+                    this._catchMissingOpenSensorUpdate()
                 }
                 callback();
             }
         });
     }
 
-    setTargetDoorState(value, callback) {
+    // Called when HomeKit wants to change the target door state
+    setTargetDoorStateHook(value, callback) {
 
-        var currentState = this.getCurrentDoorState();
+        const currentState = this._getCurrentDoorState();
         // comman to change the door state (e.g. DoorState.CLOSED to close it)
         this.log('Setting targetDoorState to %s', value);
         if (value === currentState) {
@@ -279,16 +302,30 @@ class GarageDoorOpener {
         callback();
     }
 
-    getCurrentDoorState() {
+    _getCurrentDoorState() {
         return this.service.getCharacteristic(Characteristic.CurrentDoorState).value;
     }
 
-    setCurrentDoorState(state) {
+    _setCurrentDoorState(state) {
         this.service.getCharacteristic(Characteristic.CurrentDoorState).updateValue(state);
         if (!this.autoClose) {
-            // Save the state to survice homebridge restarts
+            // Save the state to survive homebridge restarts
             this._savePersistedState(state);
         }
+    }
+
+    // Used to set the targetDoorState without triggering the callback
+    _setTargetDoorState(state) {
+        // setting the targetDoorState here does not trigger _setTargetDoorState callback
+        // it just sets the value in Homekit
+        this.service.getCharacteristic(Characteristic.TargetDoorState).updateValue(state);
+    }
+
+    // Used to override the final door state after an operation has failed or there was a background update
+    _setFinalDoorStateOverride(state) {
+
+        this._setTargetDoorState(state);
+        this._setCurrentDoorState(state);
     }
 
     _clearDelayedAction() {
@@ -309,12 +346,25 @@ class GarageDoorOpener {
     }
 
     handleWebhook(query) {
-        const currentState = this.getCurrentDoorState();
+        const currentState = this._getCurrentDoorState();
         const targetState = this.service.getCharacteristic(Characteristic.TargetDoorState).value;
         this._debugLog('Webhook received 2, currentState: %s, targetState: %s, query: %j', currentState, targetState, query);
 
-        var isBackgroundUpdate = query.background === 'true';
-        var isDoorMoving = (currentState === DoorState.OPENING || currentState === DoorState.CLOSING);
+        const isBackgroundUpdate = query.background === 'true';
+
+        // Do the background update only if door is not moving and there's no outstanding delayed
+        // action or http request
+        const applyBackgroundUpdate = isBackgroundUpdate && this.delayedActionTimeoutID == null
+            && !this.inHttpRequest;      
+
+        if (isBackgroundUpdate) {
+            this._debugLog('Received background update query = %s', query);
+        
+            if (!applyBackgroundUpdate) {
+                this._debugLog('Ignoring background update because there is an outstanding operation');
+                return;
+            }
+        }
 
         if ('open' in query) {
             if (!this.hasOpenSensor) {
@@ -323,24 +373,19 @@ class GarageDoorOpener {
             }
 
             if ('closed' in query) {
-                this.log.warn('Received both "open" and "closed" in webhook, ignoring upadte');
+                this.log.warn('Received both "open" and "closed" in webhook, ignoring update');
                 return;
             }
 
-            if (isBackgroundUpdate) {
-                this._debugLog('Received background update for open sensor value = %s', query.open);
+            if (applyBackgroundUpdate) {
 
-                // If door isn't moving, update the state
-                if (!isDoorMoving) {
-                    this._debugLog('Updating state from background update');
-                    if (query.open === 'true') {
-                        this.setCurrentDoorState(DoorState.OPEN);
-                        this._debugLog('Updating state to open from background update');
-                    }
-                    else if (query.open === 'false' && !this.hasClosedSensor) {
-                        this.setCurrentDoorState(DoorState.CLOSED);
-                        this._debugLog('Updating state to closed from background update');
-                    }
+                if (query.open === 'true') {
+                    this._setFinalDoorStateOverride(DoorState.OPEN);
+                    this._debugLog('Updating state to open from background update');
+                }
+                else if (query.open === 'false' && !this.hasClosedSensor) {
+                    this._setFinalDoorStateOverride(DoorState.CLOSED);
+                    this._debugLog('Updating state to closed from background update');
                 }
                 return;
             }
@@ -348,15 +393,30 @@ class GarageDoorOpener {
             if (query.open === 'true') {
                 // This could be from a requested homekit action or a manual open
                 // So always update the target state to open
-                this.setCurrentDoorState(DoorState.OPEN);
+                this._setCurrentDoorState(DoorState.OPEN);
                 // Clear any pending delayed action if from homekit action
                 this._clearDelayedAction();
             }
-            else if (query.open === 'false' && currentState != DoorState.CLOSING &&
-                    !this.hasClosedSensor)
+            // The open sensor indicates door has started closing
+            else 
             {
-                this._debugLog("Door was closed manually")
-                this.setCurrentDoorState(DoorState.CLOSED);
+                if (currentState === DoorState.CLOSING) {
+                    // this is expected so ignore the signal
+                    this._debugLog("Door is already closing, ignoring open sensor = false")
+                    return;
+                }
+                // This must be a manual close
+                this._debugLog("Door closure was manually started")
+                this._setTargetDoorState(DoorState.CLOSED);
+                this._setCurrentDoorState(DoorState.CLOSING);
+
+                // If there's no closed sensor then simulate the closed state after the close time
+                if (!this.hasClosedSensor) {
+                    this._simulateMissingClosedSensor('Door closed after manual request (simulated from open sensor)');
+                }
+                else {
+                    this._catchMissingClosedSensorUpdate();
+                }
             }
         }
         else if ('closed' in query) {
@@ -365,34 +425,44 @@ class GarageDoorOpener {
                 return;
             }
 
-            if (isBackgroundUpdate) {
-                this._debugLog('Received background update for closed sensor value = %s', query.closed);
-                // If door isn't moving, update the state
-                if (!isDoorMoving) {
-                    this._debugLog('Updating state from background update');
-                    if (query.closed === 'true') {
-                        this.setCurrentDoorState(DoorState.CLOSED);
-                        this._debugLog('Updating state to closed from background update');
-                    }
-                    else if (query.closed === 'false' && !this.hasOpenSensor) {
-                        this.setCurrentDoorState(DoorState.OPEN);
-                        this._debugLog('Updating state to open from background update');
-                    }
+            if (applyBackgroundUpdate) {
+                if (query.closed === 'true') {
+                    this._setFinalDoorStateOverride(DoorState.CLOSED);
+                    this._debugLog('Updating state to closed from background update');
+                }
+                else if (query.closed === 'false' && !this.hasOpenSensor) {
+                    this._setFinalDoorStateOverride(DoorState.OPEN);
+                    this._debugLog('Updating state to open from background update');
                 }
                 return;
             }
+
             if (query.closed === 'true') {
                 // This could be from a requested homekit action or a manual close
                 // So always update the target state to closed
-                this.setCurrentDoorState(DoorState.CLOSED);
+                this._setCurrentDoorState(DoorState.CLOSED);
                 // Clear any pending delayed action if from homekit action
                 this._clearDelayedAction();
             }
-            else if (query.closed === 'false' && currentState != DoorState.OPENING &&
-                !this.hasOpenSensor)
-            {
-                this._debugLog("Door was opened manually")
-                this.setCurrentDoorState(DoorState.OPEN);
+            // The closed sensor indicates door has started opening
+            else {
+                if (currentState === DoorState.OPENING) {
+                    // this is expected so ignore the signal
+                    this._debugLog("Door is already opening, ignoring closed sensor = false")
+                    return;
+                }
+                // This must be a manual opening
+                this._debugLog("Door opening was manually started")
+                this._setTargetDoorState(DoorState.OPEN);
+                this._setCurrentDoorState(DoorState.OPENING);
+
+                // If there's no open sensor then simulate the open state after the open time
+                if (!this.hasOpenSensor) {
+                    this._simulateMissingOpenSensor('Door opened after manual request (simulated from closed sensor)');
+                }
+                else {
+                    this._catchMissingOpenSensorUpdate()
+                }
             }
         }
     }
@@ -418,10 +488,10 @@ class GarageDoorOpener {
             .setCharacteristic(Characteristic.FirmwareRevision, this.firmware);
 
         this.service.getCharacteristic(Characteristic.TargetDoorState)
-            .on('set', this.setTargetDoorState.bind(this));
+            .on('set', this.setTargetDoorStateHook.bind(this));
 
         // Assume the door is closed if auto close or no persisted state
-        var persisted = this.autoClose ? DoorState.CLOSED : this._loadPersistedState(DoorState.CLOSED);
+        let persisted = this.autoClose ? DoorState.CLOSED : this._loadPersistedState(DoorState.CLOSED);
 
         if (persisted === DoorState.OPENING || persisted === DoorState.CLOSING) {
             // If it was opening or closing when HomeKit stopped, assume it is stopped now

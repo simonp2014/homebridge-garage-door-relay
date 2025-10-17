@@ -16,8 +16,6 @@ module.exports = function(homebridge) {
         GarageDoorOpener.instances.forEach(instance => {
             if (typeof instance.startWebhookServer === 'function') {
                 instance.startWebhookServer();
-                // Initialise initial state??
-                //instance._getStatus(function() {});
             }
         });
     });

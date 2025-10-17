@@ -1,5 +1,4 @@
 const request = require('request');
-const jp = require('jsonpath');
 
 class HttpClient {
     constructor(log, options = {}) {
@@ -10,14 +9,14 @@ class HttpClient {
         this.auth = options.auth;
     }
 
-    request(url, body, method, callback) {
+    request(url, method, callback) {
         const reqMethod = method || this.http_method;
         if (this.debug && this.log) {
-            this.log('HTTP request -> method: %s, url: %s, body: %s', reqMethod, url, body);
+            this.log('HTTP request -> method: %s, url: %s', reqMethod, url);
         }
         request({
             url: url,
-            body: body,
+            body: '''',
             method: reqMethod,
             timeout: this.timeout,
             rejectUnauthorized: false,
@@ -29,7 +28,7 @@ class HttpClient {
                 }
             }
             if (callback) {
-                callback(error, response, responseBody);
+                callback(error);
             }
         });
     }
