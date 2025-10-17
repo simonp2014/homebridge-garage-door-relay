@@ -391,9 +391,13 @@ class GarageDoorOpener {
             }
 
             if (query.open === 'true') {
+                this._debugLog('Open sensor triggered - door is now open');
+
                 // This could be from a requested homekit action or a manual open
                 // So always update the target state to open
-                this._setCurrentDoorState(DoorState.OPEN);
+                // Also need to set the target door state within _setFinalDoorStateOverride
+                // so that homekit gets updated correctly
+                this._setFinalDoorStateOverride(DoorState.OPEN);
                 // Clear any pending delayed action if from homekit action
                 this._clearDelayedAction();
             }
@@ -438,9 +442,13 @@ class GarageDoorOpener {
             }
 
             if (query.closed === 'true') {
+                this._debugLog('Closed sensor triggered - door is now closed');
+
                 // This could be from a requested homekit action or a manual close
                 // So always update the target state to closed
-                this._setCurrentDoorState(DoorState.CLOSED);
+                // Also need to set the target door state within _setFinalDoorStateOverride
+                // so that homekit gets updated correctly
+                this._setFinalDoorStateOverride(DoorState.CLOSED);
                 // Clear any pending delayed action if from homekit action
                 this._clearDelayedAction();
             }
