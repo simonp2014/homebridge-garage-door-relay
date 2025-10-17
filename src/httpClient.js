@@ -16,7 +16,7 @@ class HttpClient {
         }
         request({
             url: url,
-            body: '''',
+            body: '',
             method: reqMethod,
             timeout: this.timeout,
             rejectUnauthorized: false,

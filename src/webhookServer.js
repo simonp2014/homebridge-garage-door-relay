@@ -1,5 +1,5 @@
 const http = require('http');
-const url = require('url');
+const { URL } = require('url');
 
 class WebhookServer {
     constructor(log, port, debug, handler) {
@@ -34,9 +34,11 @@ class WebhookServer {
                     // in case a sensor change was missed
                     //
                     // e.g. http://<homebridgehost>:<webport>/?closed=false&background=true
-                    const parsedUrl = url.parse(req.url, true);
+                    const baseHost = req.headers.host || `localhost:${this.port}`;
+                    const parsedUrl = new URL(req.url, `http://${baseHost}`);
                     if (parsedUrl.pathname === '/') {
-                        const queryParams = parsedUrl.query; // dictionary of name/value pairs
+                        // convert URLSearchParams to plain object with single values
+                        const queryParams = Object.fromEntries(parsedUrl.searchParams.entries()); // dictionary of name/value pairs
                         if (typeof this.handler === 'function') {
                             this.handler(queryParams);
                         }
