@@ -120,7 +120,7 @@ More information at https://savjee.be/2020/06/make-garage-door-opener-smart-shel
 
 Door sensors are used to signal changes to this accessory and adjust the door state accordingly. Ideally, for a garage door there would be a sensor at each end of the track to signal when the door is in the fully opened or closed state. Where there is a missing sensor at one end of the track this accessory will simulate the door operation assuming that the door reaches the required state after a specified timeout.
 
-I have assume two Aqara P2 Door Sensors at each end of the track to detect the door position and send immediate updates through the webhook interface. I did this by creating a HomeKit automation for each sensor for their open and closed states to run a shortcut that fires a web request to the webhook (see below for details).
+I used two Aqara P2 Door Sensors at each end of the track to detect the door position and send immediate updates through the webhook interface. I did this by creating a HomeKit automation for each sensor for their open and closed states to run a shortcut that fires a web request to the webhook (see below for details).
 
 You could also use a Reed Switch sensor directly wired to the Shelly relay to perform that case of the Open or Closed sensor. (The Shelly relay would need to be configured to call the webhook URL with the required parameters when it's switch input changes state).
 
@@ -132,9 +132,36 @@ For Shelly 1 and a normally open reed switch (NO) the following options need to 
 
 ??
 
+The configuration of the accessory needs to specify which sensors will provide status updates. The values are:
+
+- Set *hasClosedSensor = true* if there is a sensor that fires when the door reaches the fully closed position and immediately as the door starts to open
+- Set *hasOpenSensor = true* if there is a sensor that fires when the door reaches the fully open position and immediately as the door starts to close
+
 ## Webhook Interface
 
-Sensors notify the accessory of changes to the state of the door through the webhook interface. 
+Sensors notify the accessory of changes to the state of the door through the webhook interface. The format of the URL used for these updates is:
+
+http://<ip of homebridge>:<webhookport>/?<sensor name>=true!false
+
+For example, if you have Homebridge running on local address 192.168.0.12 and this accessory is configured to have a webhookport of 51827 you would indicate that the door has reached the fully close position with:
+
+http://192.168.0.12:51827/?closed=true (Door is now fully closed)
+
+When the door starts to open this URL would then be triggered:
+
+http://192.168.0.12:51827/?closed=false  (Door has started to open)
+
+In both these cases the accessory must be configured with hasClosedSensor = true.
+
+Similarly, if you have a sensor at the fully open position (i.e. hasOpenSensor = true) you would setup the sensor to fire these URLs as it changed state:
+
+http://192.168.0.12:51827/?open=true (Door is now fully open)
+
+http://192.168.0.12:51827/?open=false  (Door has started to close)
+
+
+
+
 
 
 
