@@ -10,15 +10,18 @@ This work is forked from https://github.com/calvarium/homebridge-http-garage-doo
 
 ## Description
 
-This [homebridge](https://github.com/nfarina/homebridge) plugin exposes a web-based garage opener to Apple's [HomeKit](http://www.apple.com/ios/home/).
-Using simple HTTP requests, the plugin allows you to open/close the garage. It works as a general purpose HTTP client for any relay, but it works particularly wel
+This [homebridge](https://github.com/nfarina/homebridge) plugin exposes a web-based door or gate opener to Apple's [HomeKit](http://www.apple.com/ios/home/).
+Using simple HTTP requests, the plugin allows you to open/close the door. It works as a general purpose HTTP client for any relay, but it works particularly wel
 l with a Shelly 1 relay.
 
 This version was created with the following aims:
 
 - Use event driven sensor updates instead of polling for improved feedback of door state during operation
-- Support garage doors with sensors at the closed position, opened position, both or neither
+- Support doors or gates with sensors at the closed position, opened position, both or neither (an auto close door)
+- Support gates or doors that have no sensor but open on request and automatically close after a time period
 - For simplicity don't attempt to detect the stopped state, obstruction or when the door reverses during operation
+- Persist the door state across Homebridge restarts
+- Provide a meachanism to update the door state in the background at periodic intervals in case snesor updates were not successfully delivered
 
 ## Installation
 
@@ -101,11 +104,6 @@ NOTE: Don't forget to update `shelly_ip` to the IP address of your Shelly relay.
 | `3`   | Closing     |
 | `4`   | Stopped     |
 
-When the door is moving and a new command is received, the accessory first
-marks the door as **Stopped** before reversing its direction. For example,
-when opening a closed door and the webhook is triggered again, the sequence is:
-`Closed -> Opening -> Stopped -> Closing -> Closed`. The same applies in the
-opposite direction.
 
 ## Wiring
 
@@ -118,13 +116,26 @@ More information at https://savjee.be/2020/06/make-garage-door-opener-smart-shel
 - [Shelly1 Garage Door Control](https://www.youtube.com/watch?v=aV7gOWjia5w)
 - [Automate your Garage Door! The PERFECT First DIY Smart Home Project](https://www.youtube.com/watch?v=WEZUxXNiERQ)
 
-## Door open/closed sensor
+## Door / Gate sensors
 
-In order to know for sure if your gate is open or closed you need to install a Reed Switch sensor connected between `L` and `SW` (order is irrelevant). These cost between €2 and €5.
+Door sensors are used to signal changes to this accessory and adjust the door state accordingly. Ideally, for a garage door there would be a sensor at each end of the track to signal when the door is in the fully opened or closed state. Where there is a missing sensor at one end of the track this accessory will simulate the door operation assuming that the door reaches the required state after a specified timeout.
+
+I have assume two Aqara P2 Door Sensors at each end of the track to detect the door position and send immediate updates through the webhook interface. I did this by creating a HomeKit automation for each sensor for their open and closed states to run a shortcut that fires a web request to the webhook (see below for details).
+
+You could also use a Reed Switch sensor directly wired to the Shelly relay to perform that case of the Open or Closed sensor. (The Shelly relay would need to be configured to call the webhook URL with the required parameters when it's switch input changes state).
+
+The Reed Switch sensor would be connected between `L` and `SW` (order is irrelevant). These cost between €2 and €5.
 
 ![Reed Switch](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQlGm8m0RQnE2NE15JjLc4KEOUdR0QghniwDQkSQjto3mPq9qPUVGmlrB5vBVWsL1sJlLU9sWAOs4Y&usqp=CAc)
 
 For Shelly 1 and a normally open reed switch (NO) the following options need to be set:
+
+??
+
+## Webhook Interface
+
+Sensors notify the accessory of changes to the state of the door through the webhook interface. 
+
 
 
 
