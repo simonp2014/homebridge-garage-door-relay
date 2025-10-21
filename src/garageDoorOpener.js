@@ -21,6 +21,17 @@ const DoorState = Object.freeze({
     STOPPED: 4
 });
 
+function doorStateToString(state) {
+    switch (state) {
+        case DoorState.OPEN: return 'OPEN';
+        case DoorState.CLOSED: return 'CLOSED';
+        case DoorState.OPENING: return 'OPENING';
+        case DoorState.CLOSING: return 'CLOSING';
+        case DoorState.STOPPED: return 'STOPPED';
+        default: return 'UNKNOWN';
+    }
+}
+
 class GarageDoorOpener {
     constructor(log, config) {
         this.log = log;
@@ -270,19 +281,26 @@ class GarageDoorOpener {
 
         const currentState = this._getCurrentDoorState();
         // comman to change the door state (e.g. DoorState.CLOSED to close it)
-        this.log('Setting targetDoorState to %s', value);
+        this.log('Homekit set targetDoorState to %s', doorStateToString(value));
         if (value === currentState) {
-            this.log('Target state is the same as current state, no action needed - state = %s', value);
+            this.log('Target state is the same as current state, no action needed - state = %s', doorStateToString(value));
         }
         else if (value === DoorState.CLOSED) {
             if (currentState === DoorState.CLOSING) {
                 this.log('Door is already closing, no action needed');
             }
             else {
-                if (this.autoClose) {
-                    this.log('Now auto closing the door');
+                if (!this.autoClose) {
+                    // Do normal door open
+                    this._startDoorClose(callback);
                 }
-                this._startDoorClose(callback);
+                else {
+                    // Set the door immediately to closed state and cancel any pending operation
+                    this.log('Now forcing auto close door to closed state');
+                    this._clearDelayedAction();
+                    this._setFinalDoorStateOverride(DoorState.CLOSED);
+                    callback();
+                }
                 return;
             }
         }
@@ -296,7 +314,7 @@ class GarageDoorOpener {
             }
         }
         else {
-            this.log.warn('Unsupported targetDoorState value: %s', value);
+            this.log.warn('Unsupported targetDoorState value: %s', doorStateToString(value));
         }
 
         callback();
@@ -348,7 +366,12 @@ class GarageDoorOpener {
     handleWebhook(query) {
         const currentState = this._getCurrentDoorState();
         const targetState = this.service.getCharacteristic(Characteristic.TargetDoorState).value;
-        this._debugLog('Webhook received 2, currentState: %s, targetState: %s, query: %j', currentState, targetState, query);
+
+        if (this.debug) {
+            // Avoid calling doorStateToString if debug is not enabled
+            this._debugLog('Webhook received, currentState: %s, targetState: %s, query: %j',
+                doorStateToString(currentState), doorStateToString(targetState), query);
+        }
 
         const isBackgroundUpdate = query.background === 'true';
 
