@@ -128,9 +128,24 @@ The Reed Switch sensor would be connected between `L` and `SW` (order is irrelev
 
 ![Reed Switch](https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQlGm8m0RQnE2NE15JjLc4KEOUdR0QghniwDQkSQjto3mPq9qPUVGmlrB5vBVWsL1sJlLU9sWAOs4Y&usqp=CAc)
 
-For Shelly 1 and a normally open reed switch (NO) the following options need to be set:
+A Shelly 1 relay can be configured to use its built-in **Actions** to call the webhook interface when the sensor input changes the switch input state:
 
-??
+1. Open your **Shelly 1 Web Interface** (or use the Shelly app).  
+   Navigate to: **Settings → Actions** (or **I/O URL Actions** depending on firmware version).
+
+2. Enable **Actions**.
+
+3. Add the URLs you want to trigger:
+   - **Button switched ON URL** → e.g.  
+     ```
+     https://yourserver.example/garage?state=open
+     ```
+   - **Button switched OFF URL** → e.g.  
+     ```
+     https://yourserver.example/garage?state=close
+     ```
+
+   You can add multiple URLs per action if needed.
 
 The configuration of the accessory needs to specify which sensors will provide status updates. The values are:
 
@@ -141,7 +156,9 @@ The configuration of the accessory needs to specify which sensors will provide s
 
 Sensors notify the accessory of changes to the state of the door through the webhook interface. The format of the URL used for these updates is:
 
-http://<ip of homebridge>:<webhookport>/?<sensor name>=true!false
+http://[ip of homebridge]:[webhookport>]/?[sensor name]=true|false
+
+where [sensor name] is either *open* or *closed*.
 
 For example, if you have Homebridge running on local address 192.168.0.12 and this accessory is configured to have a webhookport of 51827 you would indicate that the door has reached the fully close position with:
 
