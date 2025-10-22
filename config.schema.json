@@ -91,13 +91,13 @@
           "title": "Has Closed Sensor",
           "type": "boolean",
           "required": true,
-          "description": "Does the door have a sensor that will fire to indicate that the door is closed"
+          "description": "Does the door have a sensor that will fire to indicate that the door is fully closed"
         },
         "hasOpenSensor": {
           "title": "Has Open Sensor",
           "type": "boolean",
           "required": true,
-          "description": "Does the door have a sensor that will fire to indicate that the door is open"
+          "description": "Does the door have a sensor that will fire to indicate that the door is fully open"
         },
         "manufacturer": {
           "title": "Manufactor",

@@ -65,19 +65,19 @@ NOTE: Don't forget to update `shelly_ip` to the IP address of your Shelly relay.
 | ----------- | ----------------------------------------- | ------- |
 | `accessory` | Must be `GarageDoorOpener`                | N/A     |
 | `name`      | Name to appear in the Home app            | N/A     |
-| `openURL`   | URL to trigger the opening of your garage | N/A     |
-| `closeURL`  | URL to trigger the closing of your garage | N/A     |
-| `hasClosedSensor` | Whether your garage has a closed sensor (true/false) | N/A |
-| `hasOpenSensor`   | Whether your garage has an open sensor (true/false)   | N/A |
+| `openURL`   | URL to trigger the opening of your door/gate | N/A     |
+| `closeURL`  | URL to trigger the closing of your door/gate | N/A     |
+| `hasClosedSensor` | Whether your door/gate has a closed sensor that fires in the fully closed position (true/false) | N/A |
+| `hasOpenSensor`   | Whether your door/gate has an open sensor that fires in the fully open position (true/false)   | N/A |
 
 ### Optional fields
 
 | Key                  | Description                                                                                                                                                                 | Default             |
 | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
-| `openTime`           | Time (in seconds) to simulate your garage opening                                                                                                                           | `10`                |
-| `closeTime`          | Time (in seconds) to simulate your garage closing                                                                                                                           | `10`                |
-| `autoClose`           | Whether your garage should auto-close after being opened                                                                                                                    | `false`             |
-| `autoCloseDelay`      | Time (in seconds) until your garage will automatically close (if enabled)                                                                                                   | `20`                |
+| `openTime`           | Time (in seconds) to simulate your door/gate opening                                                                                                                           | `10`                |
+| `closeTime`          | Time (in seconds) to simulate your door/gate closing                                                                                                                           | `10`                |
+| `autoClose`           | Whether your door/gate should auto-close after being opened                                                                                                                    | `false`             |
+| `autoCloseDelay`      | Time (in seconds) until your door/garage will automatically close (if enabled)                                                                                                   | `20`                |
 
 ### Additional options
 
@@ -87,7 +87,7 @@ NOTE: Don't forget to update `shelly_ip` to the IP address of your Shelly relay.
 | `http_method`  | HTTP method used to communicate with the device                                                    | `GET`   |
 | `username`     | Username if HTTP authentication is enabled                                                         | N/A     |
 | `password`     | Password if HTTP authentication is enabled                                                         | N/A     |
-| `webhookPort`  | Port for local webhook server triggered at `/garage/update`                     | N/A     |
+| `webhookPort`  | Port for local webhook server triggered at `http://[homebridge ip]:[webhookport/`                     | N/A     |
 | `model`        | Appears under the _Model_ field for the accessory                                                  | plugin  |
 | `serial`       | Appears under the _Serial_ field for the accessory                                                 | version |
 | `manufacturer` | Appears under the _Manufacturer_ field for the accessory                                           | author  |
