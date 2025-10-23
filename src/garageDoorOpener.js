@@ -433,7 +433,7 @@ class GarageDoorOpener {
                     return;
                 }
                 // This must be a manual close
-                this._debugLog("Door closure was manually started")
+                this.log("Door closure was manually started")
                 this._setTargetDoorState(DoorState.CLOSED);
                 this._setCurrentDoorState(DoorState.CLOSING);
 
@@ -483,7 +483,7 @@ class GarageDoorOpener {
                     return;
                 }
                 // This must be a manual opening
-                this._debugLog("Door opening was manually started")
+                this.log("Door opening was manually started")
                 this._setTargetDoorState(DoorState.OPEN);
                 this._setCurrentDoorState(DoorState.OPENING);
 
