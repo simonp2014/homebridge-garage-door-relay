@@ -37,7 +37,7 @@ class GarageDoorOpener {
         this.log = log;
         this.config = config;
 
-        // Destructure config with defaults
+        // Deconstruct config with defaults as local variables
         const {
             name,
             openURL,
@@ -48,10 +48,10 @@ class GarageDoorOpener {
             autoCloseDelay = 20,
             hasClosedSensor,
             hasOpenSensor,
-            manufacturer = packageJson.author.name,
-            serial = packageJson.version,
-            model = packageJson.name,
-            firmware = packageJson.version,
+            manufacturer,
+            serial,
+            model,
+            firmware = String(packageJson.version || '1.0.0'),
             username = null,
             password = null,
             timeout = 3000,
@@ -60,11 +60,31 @@ class GarageDoorOpener {
             debug = false
         } = config;
 
-        Object.assign(this, {
-            name, openURL, closeURL, openTime, closeTime, 
-            autoClose, autoCloseDelay, hasClosedSensor, hasOpenSensor, manufacturer, serial, model, firmware,
-            username, password, timeout, webhookPort, http_method, 
-        });
+        // Assign the local variables to instance properties
+        this.name = name;
+        this.openURL = openURL;
+        this.closeURL = closeURL;
+        this.openTime = openTime;
+        this.closeTime = closeTime;
+        this.autoClose = autoClose;
+        this.autoCloseDelay = autoCloseDelay;
+        this.hasClosedSensor = hasClosedSensor;
+        this.hasOpenSensor = hasOpenSensor;
+
+        // Use safe, stable strings. DO NOT tie serial to plugin version.
+        this.manufacturer = String(manufacturer || 'simonp2014');
+
+        this.model = String(model || 'garage-door-relay');
+
+        // Use a real, stable identifier here (config value, device serial/MAC, or a fixed slug)
+        this.serial = String(serial || `gd-${slug(name)}`);
+
+        this.firmware = String(firmware); // version is OK here, it can change
+        this.username = username;
+        this.password = password;
+        this.timeout = timeout;
+        this.webhookPort = webhookPort;
+        this.http_method = http_method;
 
         if (autoClose && (hasClosedSensor || hasOpenSensor) ) {
             throw new Error('autoClose cannot be used with hasClosedSensor or hasOpenSensor');

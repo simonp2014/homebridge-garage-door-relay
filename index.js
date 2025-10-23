@@ -1,4 +1,3 @@
-let Service, Characteristic;
 const GarageDoorOpener = require('./src/garageDoorOpener');
 
 module.exports = function(homebridge) {
