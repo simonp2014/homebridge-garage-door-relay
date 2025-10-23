@@ -6,8 +6,8 @@
   "homepage": "https://github.com/simonp2014/homebridge-garage-door-relay",
   "main": "index.js",
   "engines": {
-    "homebridge": ">=0.4.50",
-    "node": ">=12.13.0"
+    "homebridge": ">=1.0",
+    "node": ">=20"
   },
   "scripts": {
     "lint": "eslint .",
