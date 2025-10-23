@@ -1,6 +1,6 @@
 {
   "name": "homebridge-garage-door-relay",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "displayName": "Garage Door Relay (event driven, multi-sensor)",
   "description": "Homebridge plugin for a garage door or gate opener using a relay (like a Shelly 1) and support for sensors in the fully open or fully closed position. It uses event driven updates rather than polling",
   "homepage": "https://github.com/simonp2014/homebridge-garage-door-relay",
