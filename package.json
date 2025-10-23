@@ -15,11 +15,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/simonp2014/homebridge-garage-door-relay"
+    "url": "git+https://github.com/simonp2014/homebridge-garage-door-relay.git"
   },
   "dependencies": {
     "jsonpath": "^1.0.2",
-    "request": "^2.88.2",
+    "undici": "^6.19.8",
     "ws": "^8.18.2"
   },
   "keywords": [
