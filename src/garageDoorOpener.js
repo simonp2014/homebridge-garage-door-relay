@@ -449,7 +449,7 @@ class GarageDoorOpener {
             {
                 if (currentState === DoorState.CLOSING) {
                     // this is expected so ignore the signal
-                    this._debugLog("Door is already closing, ignoring open sensor = false")
+                    this._debugLog("Door is already closing, ignoring open sensor = false");
                     return;
                 }
                 // This must be a manual close
@@ -485,7 +485,7 @@ class GarageDoorOpener {
             }
 
             if (query.closed === 'true') {
-                this.log('Door is closed (Closed sensor triggered);
+                this.log('Door is closed (Closed sensor triggered)');
 
                 // This could be from a requested homekit action or a manual close
                 // So always update the target state to closed
